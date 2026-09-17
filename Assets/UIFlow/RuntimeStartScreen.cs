@@ -15,6 +15,7 @@ public class RuntimeStartScreen : MonoBehaviour
 
     private readonly List<Behaviour> pausedBehaviours = new List<Behaviour>();
     private Canvas canvas;
+    private TMP_FontAsset japaneseFontAsset;
     private System.Diagnostics.Process cameraProcess;
     private float previousTimeScale = 1f;
     private bool launchCameraOnStart = true;
@@ -103,6 +104,7 @@ public class RuntimeStartScreen : MonoBehaviour
         }
 
         canvas = CreateCanvas();
+        japaneseFontAsset = CreateJapaneseFontAsset();
 
         Image background = CreatePanel(canvas.transform, "Background", new Color(0.04f, 0.05f, 0.07f, 0.96f));
         Stretch(background.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
@@ -188,12 +190,33 @@ public class RuntimeStartScreen : MonoBehaviour
 
         TMP_Text label = textObject.AddComponent<TextMeshProUGUI>();
         label.text = text;
+        if (japaneseFontAsset != null)
+        {
+            label.font = japaneseFontAsset;
+        }
         label.fontSize = fontSize;
         label.fontStyle = style;
         label.alignment = alignment;
         label.textWrappingMode = TextWrappingModes.Normal;
 
         return label;
+    }
+
+    private TMP_FontAsset CreateJapaneseFontAsset()
+    {
+        Font japaneseFont = Font.CreateDynamicFontFromOSFont("Noto Sans JP", 64);
+        if (japaneseFont == null)
+        {
+            japaneseFont = Font.CreateDynamicFontFromOSFont("Meiryo", 64);
+        }
+
+        if (japaneseFont == null)
+        {
+            Debug.LogWarning("Japanese font was not found. The start screen may show missing glyphs.");
+            return null;
+        }
+
+        return TMP_FontAsset.CreateFontAsset(japaneseFont);
     }
 
     private Button CreateButton(Transform parent, string text, Color backgroundColor, Color textColor)

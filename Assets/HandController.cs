@@ -104,30 +104,26 @@ public class HandController : MonoBehaviour
     {
         Vector3 temp;
 
-        // finger 1
+        // finger 1 (inverted signs to bend forward)
         for (int i = 0 ; i < 3 ; i++)
         {
-            temp = new Vector3(getAngleX(points[i*3+1],points[i*3+2]),
-                points[i*3].transform.localEulerAngles.y,getAngleZ(points[i*3+1],points[i*3+2]));
+            temp = new Vector3(-getAngleX(points[i*3+1],points[i*3+2]),
+                points[i*3].transform.localEulerAngles.y,-getAngleZ(points[i*3+1],points[i*3+2]));
             points[i*3].transform.localEulerAngles = temp ;
         }
 
-        // finger 2
-
-        temp = new Vector3(-getAngleX(points[10],points[11]),
-                points[9].transform.localEulerAngles.y,-getAngleZ(points[10],points[11]));
+        // finger 2 (inverted signs to bend forward)
+        temp = new Vector3(getAngleX(points[10],points[11]),
+                points[9].transform.localEulerAngles.y,getAngleZ(points[10],points[11]));
             points[9].transform.localEulerAngles = temp ;
 
-        temp = new Vector3(-getAngleX(points[13],points[14]),
-                points[12].transform.localEulerAngles.y,-getAngleZ(points[13],points[14]));
+        temp = new Vector3(getAngleX(points[13],points[14]),
+                points[12].transform.localEulerAngles.y,getAngleZ(points[13],points[14]));
             points[12].transform.localEulerAngles = temp ;
 
-        temp = new Vector3(-getAngleX(points[16],points[17]),
-                points[15].transform.localEulerAngles.y,-getAngleZ(points[16],points[17]));
+        temp = new Vector3(getAngleX(points[16],points[17]),
+                points[15].transform.localEulerAngles.y,getAngleZ(points[16],points[17]));
             points[15].transform.localEulerAngles = temp ;
-
-
-        
     }
 
     void GetAllChilds(Transform parent , List<Transform> Mylist)

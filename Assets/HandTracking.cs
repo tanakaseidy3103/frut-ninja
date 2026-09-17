@@ -16,6 +16,8 @@ public class HandTracking : MonoBehaviour
     public bool invertY = true;
     public bool invertZ = true;
     public bool calibrateFromFirstPacket = true;
+    [Range(0.01f, 1f)]
+    public float smoothingFactor = 0.25f;
     public bool printParseErrors = false;
 
     private Vector3[] initialLocalPositions;
@@ -23,6 +25,10 @@ public class HandTracking : MonoBehaviour
     private bool hasJsonReference;
     void Start()
     {
+        if (udpReceive == null)
+        {
+            udpReceive = FindFirstObjectByType<UDPReceive>();
+        }
         timeLeft = updateInterval;
         CacheInitialPointPositions();
         
@@ -51,12 +57,14 @@ public class HandTracking : MonoBehaviour
 
         try
         {
-            if (useJsonLandmarks && TryApplyJsonPacket(data))
+            if (data.Trim().StartsWith("{"))
             {
-                return;
+                TryApplyJsonPacket(data);
             }
-
-            TryApplyLegacyPacket(data);
+            else
+            {
+                TryApplyLegacyPacket(data);
+            }
         }
         catch (Exception err)
         {
@@ -65,8 +73,6 @@ public class HandTracking : MonoBehaviour
                 Debug.LogWarning($"HandTracking parse error: {err.Message}");
             }
         }
-
-
     }
 
     private bool TryApplyJsonPacket(string data)
@@ -137,7 +143,8 @@ public class HandTracking : MonoBehaviour
             float y = initialLocalPositions[i].y + (dy * jsonDeltaScale.y) + jsonPositionOffset.y;
             float z = initialLocalPositions[i].z + (dz * jsonDeltaScale.z) + jsonPositionOffset.z;
 
-            handPoints[i].transform.localPosition = new Vector3(x, y, z);
+            Vector3 targetPos = new Vector3(x, y, z);
+            handPoints[i].transform.localPosition = Vector3.Lerp(handPoints[i].transform.localPosition, targetPos, smoothingFactor);
         }
 
         return true;
@@ -166,12 +173,23 @@ public class HandTracking : MonoBehaviour
             float y = float.Parse(points[i * 3 + 1]) / 100;
             float z = float.Parse(points[i * 3 + 2]) / 100;
 
-            handPoints[i].transform.localPosition = new Vector3(x, y, z);
+            Vector3 targetPos = new Vector3(x, y, z);
+            handPoints[i].transform.localPosition = Vector3.Lerp(handPoints[i].transform.localPosition, targetPos, smoothingFactor);
         }
     }
 
     private void CacheInitialPointPositions()
     {
+        if (handPoints == null || handPoints.Length == 0)
+        {
+            List<GameObject> children = new List<GameObject>();
+            foreach (Transform child in transform)
+            {
+                children.Add(child.gameObject);
+            }
+            handPoints = children.ToArray();
+        }
+
         if (handPoints == null)
         {
             initialLocalPositions = new Vector3[0];

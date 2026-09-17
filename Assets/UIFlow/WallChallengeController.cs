@@ -37,18 +37,18 @@ public class WallChallengeController : MonoBehaviour
     private int score;
     private int lives;
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    private static void CreateBootstrap()
-    {
-        if (instance != null)
-        {
-            return;
-        }
-
-        GameObject bootstrap = new GameObject("Wall Challenge Controller");
-        instance = bootstrap.AddComponent<WallChallengeController>();
-        DontDestroyOnLoad(bootstrap);
-    }
+    // [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    // private static void CreateBootstrap()
+    // {
+    //     if (instance != null)
+    //     {
+    //         return;
+    //     }
+    // 
+    //     GameObject bootstrap = new GameObject("Wall Challenge Controller");
+    //     instance = bootstrap.AddComponent<WallChallengeController>();
+    //     DontDestroyOnLoad(bootstrap);
+    // }
 
     private void OnEnable()
     {

@@ -185,6 +185,16 @@ def parse_camera_source(value):
     return int(value) if value.isdigit() else value
 
 
+def open_camera(source):
+    if isinstance(source, int):
+        capture = cv2.VideoCapture(source, cv2.CAP_DSHOW)
+        if capture.isOpened():
+            return capture
+        capture.release()
+
+    return cv2.VideoCapture(source)
+
+
 def build_packet(player_id, source_name, gesture, command, landmarks):
     return {
         "playerId": player_id,
@@ -258,9 +268,13 @@ def main():
     parser.add_argument("--relay-port", type=int, default=5053, help="Porta UDP do relay de LED")
     args = parser.parse_args()
 
-    capture = cv2.VideoCapture(parse_camera_source(args.camera))
+    capture = open_camera(parse_camera_source(args.camera))
     if not capture.isOpened():
         raise RuntimeError(f"Could not open camera source: {args.camera}")
+
+    if args.show:
+        cv2.namedWindow("Gesture Sender", cv2.WINDOW_NORMAL)
+        cv2.waitKey(1)
 
     tracker = GestureTracker()
     led_controller = LedController(pin=args.led_pin, threshold=args.near_threshold)

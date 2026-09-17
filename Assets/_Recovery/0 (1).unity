@@ -307,7 +307,7 @@ Transform:
   m_GameObject: {fileID: 720459032}
   serializedVersion: 2
   m_LocalRotation: {x: -0.022681404, y: 0.9753377, z: -0.18348111, w: -0.120568424}
-  m_LocalPosition: {x: -1.45, y: 6.96, z: -1.83}
+  m_LocalPosition: {x: 1.87, y: 3.89, z: 11.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1009,6 +1009,14 @@ MonoBehaviour:
   - {fileID: 3629933960773456883}
   - {fileID: 3629933961398773303}
   - {fileID: 3629933961337337236}
+  useJsonLandmarks: 1
+  jsonDeltaScale: {x: 6, y: 6, z: 6}
+  jsonPositionOffset: {x: 0, y: 0, z: 0}
+  mirrorX: 1
+  invertY: 1
+  invertZ: 1
+  calibrateFromFirstPacket: 1
+  printParseErrors: 0
   updateInterval: 0.5
   shift: 7
 --- !u!1 &3121800005523770165

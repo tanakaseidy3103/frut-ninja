@@ -17,6 +17,12 @@ public class UDPReceive : MonoBehaviour
 
     public void Start()
     {
+        if (receiveThread != null && receiveThread.IsAlive)
+        {
+            return;
+        }
+
+        startRecieving = true;
         receiveThread = new Thread(new ThreadStart(ReceiveData));
         receiveThread.IsBackground = true;
         receiveThread.Start();
@@ -24,7 +30,16 @@ public class UDPReceive : MonoBehaviour
 
     private void ReceiveData()
     {
-        client = new UdpClient(port);
+        try
+        {
+            client = new UdpClient(port);
+        }
+        catch (Exception err)
+        {
+            Debug.LogWarning("UDPReceive could not open port " + port + ": " + err.Message);
+            return;
+        }
+
         while (startRecieving){
             try
             {
@@ -33,10 +48,38 @@ public class UDPReceive : MonoBehaviour
                 data = Encoding.UTF8.GetString(dataByte);
                 if (printToConsole) { Debug.Log(data); }
             }
-            catch (Exception err)
+            catch
             {
                 //Debug.Log(err.ToString);
             }
         }
+    }
+
+    private void OnDisable()
+    {
+        StopReceiver();
+    }
+
+    private void OnDestroy()
+    {
+        StopReceiver();
+    }
+
+    private void StopReceiver()
+    {
+        startRecieving = false;
+
+        if (client != null)
+        {
+            client.Close();
+            client = null;
+        }
+
+        if (receiveThread != null && receiveThread.IsAlive)
+        {
+            receiveThread.Join(200);
+        }
+
+        receiveThread = null;
     }
 }

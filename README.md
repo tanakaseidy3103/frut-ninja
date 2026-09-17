@@ -1,124 +1,246 @@
-# Hand-Detection-3D
+# MediaPipe Unity Hand Tracking
 
-| Start Menu | Live Hand Tracking Gameplay |
+Web繧ｫ繝｡繝ｩ縺ｧ讀懷・縺励◆謇九・蜍輔″繧旦nity荳翫・3D遨ｺ髢薙∈蜿肴丐縺励√ず繧ｧ繧ｹ繝√Ε繝ｼ縺ｧ邂ｱ繧呈雫繧薙〒謚輔￡繧峨ｌ繧狗黄豬√す繝溘Η繝ｬ繝ｼ繧ｷ繝ｧ繝ｳ繧帝幕逋ｺ縺励∪縺励◆縲・
+Python縺ｧ謇九・繝ｩ繝ｳ繝峨・繝ｼ繧ｯ讀懷・縺ｨ繧ｸ繧ｧ繧ｹ繝√Ε繝ｼ蛻､螳壹ｒ陦後＞縲゛SON蠖｢蠑上・UDP騾壻ｿ｡縺ｧUnity縺ｸ騾∽ｿ｡縺励∪縺吶６nity蛛ｴ縺ｧ縺ｯ蜿嶺ｿ｡縺励◆繝・・繧ｿ繧・D繝上Φ繝峨√く繝｣繝ｩ繧ｯ繧ｿ繝ｼ謫堺ｽ懊∫ｮｱ縺ｮ謗ｴ縺ｿ繝ｻ謚墓憧蜃ｦ逅・∈蛻ｩ逕ｨ縺励∪縺吶・
+## Demo
+
+| 繧ｹ繧ｿ繝ｼ繝育判髱｢ | 繝上Φ繝峨ヨ繝ｩ繝・く繝ｳ繧ｰ縺ｨ繧ｲ繝ｼ繝逕ｻ髱｢ |
 | :---: | :---: |
-| ![Start Menu](img/start_screen.png) | ![Live Hand Tracking](img/gameplay.png) |
+| ![Start Screen](img/start_screen.png) | ![Gameplay](img/gameplay.png) |
 
-## English
+## 繝励Ο繧ｸ繧ｧ繧ｯ繝域ｦりｦ・
+譛ｬ菴懷刀縺ｯ縲∫音蛻･縺ｪ繝｢繝ｼ繧ｷ繝ｧ繝ｳ繧ｳ繝ｳ繝医Ο繝ｼ繝ｩ繝ｼ繧剃ｽｿ繧上★縲∝ｸりｲｩ縺ｮWeb繧ｫ繝｡繝ｩ1蜿ｰ縺ｧ謇九・蜍輔″繧貞・蜉帙↓縺吶ｋ繝ｪ繧｢繝ｫ繧ｿ繧､繝繧､繝ｳ繧ｿ繝ｩ繧ｯ繧ｷ繝ｧ繝ｳ繧ｷ繧ｹ繝・Β縺ｧ縺吶・
+迚ｩ豬∝牙ｺｫ繧帝｡梧攝縺ｫ縺励◆Unity遨ｺ髢薙〒縲∵､懷・縺励◆謇九・蜍輔″繧・D繝上Φ繝峨∈蜿肴丐縺励√ず繧ｧ繧ｹ繝√Ε繝ｼ縺ｾ縺溘・繧ｭ繝ｼ繝懊・繝峨・繝槭え繧ｹ縺ｧ邂ｱ繧呈雫繧薙〒謚輔￡繧区桃菴懊ｒ螳溽樟縺励∪縺励◆縲・
+譛ｬ菴懷刀縺ｧ謇ｱ縺｣縺ｦ縺・ｋ荳ｻ縺ｪ謚陦楢ｦ∫ｴ縺ｯ莉･荳九〒縺吶・
+- MediaPipe Hands縺ｫ繧医ｋ謇九・21繝ｩ繝ｳ繝峨・繝ｼ繧ｯ讀懷・
+- 謇九・繝ｩ繝ｳ繝峨・繝ｼ繧ｯ繧貞茜逕ｨ縺励◆繧ｸ繧ｧ繧ｹ繝√Ε繝ｼ蛻､螳・- Python縺九ｉUnity縺ｸ縺ｮUDP/JSON騾壻ｿ｡
+- Unity荳翫〒縺ｮ3D繝上Φ繝牙宛蠕｡
+- Rigidbody繝ｻCollider繧貞茜逕ｨ縺励◆邂ｱ縺ｨ縺ｮ迚ｩ逅・う繝ｳ繧ｿ繝ｩ繧ｯ繧ｷ繝ｧ繝ｳ
 
-This project combines computer vision, MediaPipe hand tracking, Unity, and UDP networking to control a 3D character and play interactive logistics games in real time. The repository includes:
+## 閭梧勹縺ｨ隱ｲ鬘・
+迚ｩ豬∫樟蝣ｴ縺ｧ縺ｯ縲∽ｽ懈･ｭ逕ｨ謇玖｢九・逹逕ｨ繧・差迚ｩ縺ｫ繧医▲縺ｦ縲∫ｫｯ譛ｫ繧・さ繝ｳ繝医Ο繝ｼ繝ｩ繝ｼ繧呈桃菴懊＠縺･繧峨＞蝣ｴ髱｢縺後≠繧翫∪縺吶ゅ◎縺薙〒縲√き繝｡繝ｩ繧剃ｽｿ縺｣縺滄撼謗･隗ｦ謫堺ｽ懊ｒ迚ｩ豬∽ｽ懈･ｭ縺ｮ繧ｷ繝溘Η繝ｬ繝ｼ繧ｷ繝ｧ繝ｳ縺ｫ蠢懃畑縺ｧ縺阪↑縺・°縺ｨ閠・∴縺ｾ縺励◆縲・
+髢狗匱譎ゅ↓縺ｯ縲∵ｬ｡縺ｮ隱ｲ鬘後′縺ゅｊ縺ｾ縺励◆縲・
+- 繧ｫ繝｡繝ｩ譏蜒上°繧牙ｾ励◆謇九・蜍輔″繧旦nity縺ｸ繝ｪ繧｢繝ｫ繧ｿ繧､繝縺ｫ貂｡縺吝ｿ・ｦ√′縺ゅｋ
+- MediaPipe縺ｮ繝ｩ繝ｳ繝峨・繝ｼ繧ｯ縺ｫ縺ｯ繧ｫ繝｡繝ｩ繧・・譏弱↓繧医ｋ謠ｺ繧後′縺ゅｋ
+- 繧ｹ繧ｯ繝ｪ繝励ヨ縺ｧ逶ｴ謗･蠎ｧ讓吶ｒ螟画峩縺吶ｋ縺ｨ縲∵焔縺ｨ邂ｱ縺ｮ迚ｩ逅・噪縺ｪ謗･隗ｦ繧呈桶縺・↓縺上＞
+- 3D繧ｷ繝ｼ繝ｳ縺ｮ蠎ｧ讓吶→繧ｫ繝｡繝ｩ縺九ｉ蠕励◆蠎ｧ讓吶ｒ蟇ｾ蠢應ｻ倥￠繧句ｿ・ｦ√′縺ゅｋ
 
-- Real-time 3D hand tracking from a webcam using Python (OpenCV + MediaPipe).
-- Low-latency UDP networking sending JSON packets with coordinates and gestures.
-- **Logistics Infinite Game**: An interactive warehouse minigame where players grab cardboard boxes (Fist gesture / E key / Left click) and throw them (Open gesture / Space key / Right click) into target shipping containers (Tokyo/Red vs London/Blue).
-- **Physical Hand Colliders**: Kinematic rigidbodies and sphere colliders prevent hand joints from clipping through cardboard boxes, allowing you to physically push objects.
-- **Joint Movement Smoothing**: Uses Lerp filters on the 3D hand rig to eliminate high-frequency webcam jitter.
-- Multi-player scaling supporting up to 4 players by assigning a unique `playerId`.
+## 隱ｲ鬘後∈縺ｮ隗｣豎ｺ譁ｹ豕・
+### Python縺ｨUnity縺ｮ蛻・屬
 
----
+繧ｫ繝｡繝ｩ譏蜒上・蜿門ｾ励｀ediaPipe縺ｫ繧医ｋ謗ｨ隲悶√ず繧ｧ繧ｹ繝√Ε繝ｼ蛻､螳壹ｒPython蛛ｴ縺ｧ諡・ｽ薙＆縺帙ゞnity蛛ｴ縺ｯ蜿嶺ｿ｡縺励◆繝・・繧ｿ縺ｮ陦ｨ遉ｺ繝ｻ謫堺ｽ懊・繧ｲ繝ｼ繝蜃ｦ逅・↓髮・ｸｭ縺輔○縺ｾ縺励◆縲・
+### UDP縺ｫ繧医ｋ繝ｪ繧｢繝ｫ繧ｿ繧､繝騾壻ｿ｡
 
-## 日本語
+謫堺ｽ懊〒縺ｯ繝・・繧ｿ縺ｮ螳悟・諤ｧ繧医ｊ繧よ怙譁ｰ繝輔Ξ繝ｼ繝縺ｮ蛻ｰ逹繧貞━蜈医＠縺溘＞縺溘ａ縲ゝCP繧ЗTTP縺ｧ縺ｯ縺ｪ縺酋DP繧剃ｽｿ逕ｨ縺励∪縺励◆縲よ､懷・邨先棡縺ｯJSON縺ｫ縺ｾ縺ｨ繧√√・繝ｼ繝・052縺ｸ騾∽ｿ｡縺励∪縺吶・
+### 迚ｩ逅・ｼ皮ｮ励→縺ｮ邨ｱ蜷・
+謇九・荳ｭ蠢・が繝悶ず繧ｧ繧ｯ繝医↓`isKinematic = true`縺ｮRigidbody縺ｨSphereCollider繧貞虚逧・↓霑ｽ蜉縺励∪縺励◆縲ゅ％繧後↓繧医ｊ縲∵焔繧堤黄逅・ｩｺ髢謎ｸ翫・繧ｪ繝悶ず繧ｧ繧ｯ繝医→縺励※謇ｱ縺・∫ｮｱ縺ｨ縺ｮ謗･隗ｦ繧貞ｮ溽樟縺励※縺・∪縺吶・
+### 蠎ｧ讓吶→繝弱う繧ｺ縺ｸ縺ｮ蟇ｾ蠢・
+Unity蛛ｴ縺ｧ蟾ｦ蜿ｳ蜿崎ｻ｢縲〆/Z譁ｹ蜷代・蜿崎ｻ｢縲√せ繧ｱ繝ｼ繝ｫ縲√が繝輔そ繝・ヨ繧定ｨｭ螳壹〒縺阪ｋ繧医≧縺ｫ縺励√Λ繝ｳ繝峨・繝ｼ繧ｯ縺ｮ蠎ｧ讓咏ｳｻ繧・D遨ｺ髢薙∈螟画鋤縺励※縺・∪縺吶ゅ∪縺溘´erp縺ｫ繧医ｋ陬憺俣縺ｧ謇九・蜍輔″繧貞ｹｳ貊大喧縺励※縺・∪縺吶・
+## 繧ｷ繧ｹ繝・Β讒区・
 
-このプロジェクトは、MediaPipeによるリアルタイム手の3Dトラッキング（Python）、Unity、およびUDPネットワーク通信を組み合わせた、次世代の非接触型物流シミュレーション・ゲームシステムです。
+```mermaid
+flowchart LR
+    A[Web繧ｫ繝｡繝ｩ] --> B[OpenCV]
+    B --> C[MediaPipe Hands]
+    C --> D[21轤ｹ繝ｩ繝ｳ繝峨・繝ｼ繧ｯ]
 
-- **物流無限仕分けゲーム (Logistics Infinite Game)**: カメラの前に次々と出現する配送用の「ダンボール箱」を手のジェスチャー（Fist / キーボードE / マウスクリック）で掴み、配送先（東京行/赤、ロンドン行/青）のコンテナに向けて物理アプローチ（Open / スペースキー / 右クリック）で投げ入れる仕分けゲーム。
-- **物理コライダーの自動生成**: 3Dの手が段ボール箱オブジェクトを「すり抜ける」のを防ぐため、手の中央に動的物理コライダーを実装。箱を物理的に手で押す・触るアクションが可能。
-- **Lerpによる動きの平滑化**: カメラ特有の微細なブレ（ジッター）を極限まで排除する位置補間フィルターを実装し、スムーズで精密な操作性を実現。
-- 最大4人までのマルチプレイヤー拡張性。
+    D --> E[GestureTracker]
+    E --> F[繧ｸ繧ｧ繧ｹ繝√Ε繝ｼ蛻､螳咯
+    E --> G[遘ｻ蜍輔・繧ｸ繝｣繝ｳ繝励・謾ｻ謦・さ繝槭Φ繝云
 
----
+    F --> H[JSON繝代こ繝・ヨ]
+    G --> H
+    D --> H
 
-## Demo (Video)
+    H -->|UDP 5052| I[GestureUdpReceiver]
+    I --> J[GesturePacketModels]
 
-[![Watch the video](https://github-production-user-asset-6210df.s3.amazonaws.com/75379150/270224152-4304f8eb-551a-40ce-9c06-b5696c73e1c6.PNG)](https://www.youtube.com/watch?v=Dl0FvKSwzv8)
+    J --> K[GestureHandAvatar]
+    J --> L[GestureCharacterMotor]
+    J --> M[PackageGrabber]
+    J --> N[WallChallengeController]
 
----
+    K --> O[Unity 3D繝上Φ繝云
+    L --> P[繧ｭ繝｣繝ｩ繧ｯ繧ｿ繝ｼ謫堺ｽ彎
+    M --> Q[邂ｱ縺ｮ謗ｴ縺ｿ繝ｻ謚墓憧]
+    Q --> R[迚ｩ豬√す繝溘Η繝ｬ繝ｼ繧ｷ繝ｧ繝ｳ]
+    N --> S[繧ｸ繧ｧ繧ｹ繝√Ε繝ｼ繝√Ε繝ｬ繝ｳ繧ｸ]
 
-## Architecture
-
-The real-time loop is:
-
-1. Python captures video from a webcam or network camera.
-2. MediaPipe extracts 21 landmarks for the detected hand.
-3. The gesture layer converts landmarks into gameplay commands.
-4. A UDP packet is sent to Unity with `playerId`, `gesture`, `command`, and `landmarks`.
-5. Unity updates the 3D hand avatar and character movement for the matching player.
-
-### UDP Packet Format
-
-```json
-{
-  "playerId": "player-1",
-  "source": "webcam",
-  "gesture": "open",
-  "timestampMs": 1710000000000,
-  "command": {
-    "moveX": 0.42,
-    "moveY": 0.0,
-    "moveZ": 0.85,
-    "jump": false,
-    "attack": false,
-    "confidence": 0.92
-  },
-  "landmarks": [
-    { "x": 0.51, "y": 0.79, "z": -0.03 }
-  ]
-}
+    E -. 繧ｪ繝励す繝ｧ繝ｳ .-> T[LED蛻ｶ蠕｡逕ｨUDP]
+    T --> U[led_receiver.py]
+    U --> V[Raspberry Pi GPIO LED]
 ```
 
----
+### 繧ｷ繧ｹ繝・Β縺ｮ豬√ｌ
 
-## Gesture & Controls Mapping
+1. Web繧ｫ繝｡繝ｩ縺九ｉ繝輔Ξ繝ｼ繝繧貞叙蠕・2. OpenCV縺ｧ逕ｻ蜒上ｒ蜑榊・逅・3. MediaPipe Hands縺ｧ謇九・繝ｩ繝ｳ繝峨・繝ｼ繧ｯ21轤ｹ繧呈､懷・
+4. `GestureTracker`縺ｧ謇九・迥ｶ諷九ｄ繧ｹ繝ｯ繧､繝励ｒ蛻､螳・5. 繝ｩ繝ｳ繝峨・繝ｼ繧ｯ縲√ず繧ｧ繧ｹ繝√Ε繝ｼ縲∵桃菴懊さ繝槭Φ繝峨ｒJSON蛹・6. UDP縺ｧUnity縺ｮ繝昴・繝・052縺ｸ騾∽ｿ｡
+7. `GestureUdpReceiver`縺後・繝ｬ繧､繝､繝ｼID縺斐→縺ｮ譛譁ｰ繝代こ繝・ヨ繧剃ｿ晄戟
+8. `GestureHandAvatar`縺ｪ縺ｩ縺悟女菫｡繝・・繧ｿ繧旦nity荳翫・謫堺ｽ懊∈蜿肴丐
 
-### Camera Gestures
-- `open`: Release or throw held cardboard box / enable character movement.
-- `fist`: Grab the nearest cardboard box / trigger attack.
-- `swipe_up`: Trigger jump.
-- `swipe_left`: Move left.
-- `swipe_right`: Move right.
+Unity蛛ｴ縺ｫ縺ｯ縲゛SON騾壻ｿ｡繧呈桶縺・GestureUdpReceiver`邉ｻ縺ｮ螳溯｣・↓蜉縺医※縲∵里蟄伜ｽ｢蠑上↓蟇ｾ蠢懊☆繧義UDPReceive` / `HandTracking`邉ｻ縺ｮ螳溯｣・ｂ縺ゅｊ縺ｾ縺吶・
+### ER蝗ｳ・郁ｫ也炊繝｢繝・Ν・・
+譛ｬ繝励Ο繧ｸ繧ｧ繧ｯ繝医・繝・・繧ｿ繝吶・繧ｹ繧剃ｽｿ逕ｨ縺励※縺・↑縺・◆繧√∽ｻ･荳九・UDP/JSON縺ｧ荳譎ら噪縺ｫ謇ｱ縺・ョ繝ｼ繧ｿ縺ｨ縲ゞnity縺ｮ繧ｲ繝ｼ繝迥ｶ諷九ｒ陦ｨ縺呵ｫ也炊ER蝗ｳ縺ｧ縺吶ょｮ溯｡御ｸｭ縺ｮ繝｡繝｢繝ｪ荳翫・繝｢繝・Ν縺ｧ縺ゅｊ縲∵ｰｸ邯壼喧縺輔ｌ縺溘ユ繝ｼ繝悶Ν螳夂ｾｩ縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ縲・
+```mermaid
+erDiagram
+  PLAYER ||--o{ TRACKING_PACKET : "騾∽ｿ｡縺吶ｋ"
+  CAMERA_SOURCE ||--o{ TRACKING_PACKET : "逕滓・縺吶ｋ"
+  TRACKING_PACKET ||--|{ HAND_LANDMARK : "蜷ｫ繧"
+  TRACKING_PACKET ||--|| GESTURE_COMMAND : "蜷ｫ繧"
+  GAME_SESSION ||--o{ PACKAGE : "逕滓・縺吶ｋ"
+  GAME_SESSION ||--|{ DELIVERY_BIN : "驟咲ｽｮ縺吶ｋ"
+  PLAYER ||--o{ GAME_SESSION : "謫堺ｽ懊☆繧・
 
-### Hybrid Keyboard & Mouse Fallbacks
-- **Grab Box**: Press `E` or `2` key, or **Left Mouse Click**.
-- **Throw Box**: Press `Space` or `1` key, or **Right Mouse Click**.
+  PLAYER {
+    string player_id PK
+  }
+  CAMERA_SOURCE {
+    string source_name PK
+  }
+  TRACKING_PACKET {
+    string player_id PK
+    string source_name PK
+    long timestamp_ms PK
+    string gesture
+  }
+  HAND_LANDMARK {
+    int landmark_index PK
+    float x
+    float y
+    float z
+  }
+  GESTURE_COMMAND {
+    float move_x
+    float move_y
+    float move_z
+    boolean jump
+    boolean attack
+    float confidence
+  }
+  GAME_SESSION {
+    string session_id PK
+    int score
+    int lives
+    float elapsed_time
+  }
+  PACKAGE {
+    string package_name PK
+    string state
+    boolean is_holding
+  }
+  DELIVERY_BIN {
+    string bin_name PK
+    string destination
+    string color
+  }
+```
 
----
+`PACKAGE`縺ｨ`DELIVERY_BIN`縺ｮ驟埼∝・辣ｧ蜷医・迴ｾ蝨ｨ螳溯｣・＠縺ｦ縺翫ｉ縺壹∫ｮｱ縺後ン繝ｳ縺ｫ蜈･縺｣縺溘→縺阪↓繧ｹ繧ｳ繧｢繧貞刈邂励☆繧区ｧ区・縺ｧ縺吶・
+## 謚陦捺ｧ区・
 
-## Getting Started
+| 蛻・｡・| 謚陦・| 逕ｨ騾・|
+| :--- | :--- | :--- |
+| 險隱・| Python | 繧ｫ繝｡繝ｩ蜃ｦ逅・｀ediaPipe螳溯｡後√ず繧ｧ繧ｹ繝√Ε繝ｼ蛻､螳・|
+| 險隱・| C# | Unity蛛ｴ縺ｮ蜿嶺ｿ｡縲・D蛻ｶ蠕｡縲∫黄逅・・逅・√ご繝ｼ繝蛻ｶ蠕｡ |
+| 隱崎ｭ・| MediaPipe Hands | 謇九・21繝ｩ繝ｳ繝峨・繝ｼ繧ｯ讀懷・ |
+| 逕ｻ蜒丞・逅・| OpenCV | 繧ｫ繝｡繝ｩ譏蜒丞叙蠕励∫判蜒丞､画鋤縲√ョ繝舌ャ繧ｰ陦ｨ遉ｺ |
+| 騾壻ｿ｡ | UDP / JSON | Python縺九ｉUnity縺ｸ縺ｮ繝ｪ繧｢繝ｫ繧ｿ繧､繝繝・・繧ｿ騾∽ｿ｡ |
+| 3D繧ｨ繝ｳ繧ｸ繝ｳ | Unity 6 `6000.3.11f1` | 3D陦ｨ遉ｺ縲√す繝ｼ繝ｳ縲√ご繝ｼ繝蜃ｦ逅・|
+| 迚ｩ逅・ｼ皮ｮ・| Rigidbody / Collider | 謇九→邂ｱ縺ｮ謗･隗ｦ縲∫ｮｱ縺ｮ謚墓憧 |
+| UI | TextMesh Pro / uGUI | 繧ｹ繧ｿ繝ｼ繝育判髱｢縲√せ繧ｳ繧｢縲√ち繧､繝槭・縺ｪ縺ｩ縺ｮ陦ｨ遉ｺ |
+| 螟夜Κ繝・ヰ繧､繧ｹ | Raspberry Pi GPIO | 繧ｪ繝励す繝ｧ繝ｳ縺ｮLED蛻ｶ蠕｡ |
 
-### Prerequisites
+Python縺ｮ萓晏ｭ倬未菫ゅ・`python/requirements.txt`縺ｧ邂｡逅・＠縺ｦ縺・∪縺吶・
+## 荳ｻ縺ｪ讖溯・
 
-- Unity 6 LTS (6000.3.11f1) or compatible.
-- Python 3.10+.
-- A standard USB webcam.
+### 繝上Φ繝峨ヨ繝ｩ繝・く繝ｳ繧ｰ縺ｨ繧ｸ繧ｧ繧ｹ繝√Ε繝ｼ蜈･蜉・
+- Web繧ｫ繝｡繝ｩ縺九ｉ謇九ｒ讀懷・
+- 21轤ｹ縺ｮ繝ｩ繝ｳ繝峨・繝ｼ繧ｯ繧貞叙蠕・- `open`縲～fist`繧貞愛螳・- `swipe_left`縲～swipe_right`縲～swipe_up`繧貞愛螳・- 謇九・菴咲ｽｮ縺九ｉ遘ｻ蜍輔さ繝槭Φ繝峨ｒ逕滓・
+- 菫｡鬆ｼ蠎ｦ繧谷SON繝代こ繝・ヨ縺ｫ蜷ｫ繧√※騾∽ｿ｡
 
-### Python Setup
+### Unity縺ｧ縺ｮ3D蛻ｶ蠕｡
 
-Install the dependencies:
+- 3D繝上Φ繝峨∈繝ｩ繝ｳ繝峨・繝ｼ繧ｯ繧貞渚譏
+- 謇句・菴薙・遘ｻ蜍輔ｒ蛻ｶ蠕｡
+- Lerp縺ｾ縺溘・謖・焚蟷ｳ貊大喧縺ｫ繧医ｋ蜍輔″縺ｮ陬憺俣
+- 繧ｸ繧ｧ繧ｹ繝√Ε繝ｼ縺ｫ繧医ｋ繧ｭ繝｣繝ｩ繧ｯ繧ｿ繝ｼ遘ｻ蜍輔√ず繝｣繝ｳ繝励∵判謦・
+### 迚ｩ豬√す繝溘Η繝ｬ繝ｼ繧ｷ繝ｧ繝ｳ
 
+- 邂ｱ縺ｮ閾ｪ蜍慕函謌・- 謇九ｒ霑代▼縺代※邂ｱ繧呈雫繧
+- 謇九・遘ｻ蜍暮溷ｺｦ繧貞茜逕ｨ縺励※邂ｱ繧呈兜縺偵ｋ
+- 譚ｱ莠ｬ繝ｻ繝ｭ繝ｳ繝峨Φ繧定｡ｨ縺・縺､縺ｮ繝薙Φ繧堤函謌・- 繧ｹ繧ｳ繧｢縺ｨHUD繧定｡ｨ遉ｺ
+- 辟｡髯千ｷｴ鄙貞ｽ｢蠑上〒謫堺ｽ懊ｒ邯咏ｶ・
+迴ｾ蝨ｨ縺ｮ迚ｩ豬√ご繝ｼ繝縺ｧ縺ｯ縲∫ｮｱ縺後←縺ｮ驟埼∝・縺ｫ螻槭☆繧九°縺ｮ豁｣隱､蛻､螳壹・陦後ｏ縺壹√ン繝ｳ縺ｸ縺ｮ謚募・繧呈､懷・縺励※繧ｹ繧ｳ繧｢繧貞刈邂励＠縺ｾ縺吶・
+### 縺昴・莉悶・讖溯・
+
+- 繧ｭ繝ｼ繝懊・繝峨・繝槭え繧ｹ縺ｫ繧医ｋ莉｣譖ｿ謫堺ｽ・- Unity襍ｷ蜍墓凾縺ｮPython繝医Λ繝・く繝ｳ繧ｰ繝励Ο繧ｰ繝ｩ繝襍ｷ蜍・- 繧ｸ繧ｧ繧ｹ繝√Ε繝ｼ繧ｦ繧ｩ繝ｼ繝ｫ繝√Ε繝ｬ繝ｳ繧ｸ
+- Raspberry Pi縺ｸ縺ｮ霑第磁迥ｶ諷九・UDP騾∽ｿ｡縺ｨLED蛻ｶ蠕｡
+
+## 螳溯｣・・蟾･螟ｫ縺励◆轤ｹ
+
+### `python/gesture_sender.py`
+
+- OpenCV縺ｧ繧ｫ繝｡繝ｩ譏蜒上ｒ蜿門ｾ・- MediaPipe Hands繧偵Μ繧｢繝ｫ繧ｿ繧､繝螳溯｡・- 謖・・莨ｸ縺ｳ譛ｬ謨ｰ縺九ｉ髢九＞縺滓焔繝ｻ諡ｳ繧貞・鬘・- 謇矩ｦ悶・螻･豁ｴ縺九ｉ繧ｹ繝ｯ繧､繝玲婿蜷代ｒ讀懷・
+- 繝・ャ繝峨だ繝ｼ繝ｳ繧定ｨｭ縺代∝ｾｮ蟆上↑謇九・謠ｺ繧後↓繧医ｋ蜈･蜉帙ｒ謚大宛
+- JSON蠖｢蠑上〒繝ｩ繝ｳ繝峨・繝ｼ繧ｯ縺ｨ謫堺ｽ懊さ繝槭Φ繝峨ｒ騾∽ｿ｡
+
+### `Assets/GestureControl/`
+
+- UDP蜿嶺ｿ｡蜃ｦ逅・ｒ迢ｬ遶九＠縺歔GestureUdpReceiver`縺ｫ蛻・屬
+- 繝励Ξ繧､繝､繝ｼID縺斐→縺ｫ譛譁ｰ繝代こ繝・ヨ繧堤ｮ｡逅・- 謇九・繝ｩ繝ｳ繝峨・繝ｼ繧ｯ繧・D繝｢繝・Ν縺ｸ蜿肴丐
+- 遘ｻ蜍輔√ず繝｣繝ｳ繝励∵判謦・・繧ｳ繝槭Φ繝峨ｒUnity縺ｮ繧ｭ繝｣繝ｩ繧ｯ繧ｿ繝ｼ蛻ｶ蠕｡縺ｸ謗･邯・
+### `Assets/PackageGrabber.cs`
+
+- 謇九・荳ｭ蠢・↓迚ｩ逅・さ繝ｳ繝昴・繝阪Φ繝医ｒ蜍慕噪縺ｫ莉倅ｸ・- 謗ｴ繧薙〒縺・ｋ髢薙・邂ｱ繧呈焔縺ｸ霑ｽ蠕・- 謇九・遘ｻ蜍暮溷ｺｦ繧呈兜謫ｲ譁ｹ蜷代→蜉帙↓蛻ｩ逕ｨ
+- 繧ｭ繝ｼ繝懊・繝峨・繝槭え繧ｹ繧剃ｻ｣譖ｿ蜈･蜉帙→縺励※螳溯｣・
+### 蠎ｧ讓吝撫鬘後∈縺ｮ蟇ｾ蠢・
+驛ｨ螻九Δ繝・Ν縺ｨ繧ｲ繝ｼ繝繧ｪ繝悶ず繧ｧ繧ｯ繝医・蠎ｧ讓吶′髮｢繧後※縺・◆縺溘ａ縲∝崋螳壹Ρ繝ｼ繝ｫ繝牙ｺｧ讓吶〒縺ｯ縺ｪ縺上∝ｮ溯｡梧凾縺ｮ`handCenter`繧貞渕貅悶↓邂ｱ繧・ン繝ｳ繧帝・鄂ｮ縺吶ｋ譁ｹ蠑上↓縺励∪縺励◆縲・
+## 諡・ｽ薙＠縺溷ｮ溯｣・
+- `Assets/LogisticsGameController.cs`
+  - 迚ｩ豬√す繝溘Η繝ｬ繝ｼ繧ｷ繝ｧ繝ｳ縺ｮ繧ｲ繝ｼ繝邂｡逅・√ン繝ｳ逕滓・縲√せ繧ｳ繧｢縲？UD
+- `Assets/PackageGrabber.cs`
+  - 邂ｱ縺ｮ逕滓・縲∵雫縺ｿ縲∵兜謫ｲ縲∽ｻ｣譖ｿ蜈･蜉帙∵焔縺ｮCollider險ｭ螳・- `Assets/HandTracking.cs`
+  - JSON繝代こ繝・ヨ蜃ｦ逅・∝ｺｧ讓吝､画鋤縲´erp縺ｫ繧医ｋ蟷ｳ貊大喧
+- `Assets/UIFlow/RuntimeStartScreen.cs`
+  - 襍ｷ蜍慕判髱｢縲√ご繝ｼ繝髢句ｧ句・逅・￣ython繝励Ο繧ｰ繝ｩ繝縺ｮ襍ｷ蜍輔・邨ゆｺ・- `python/gesture_sender.py`
+  - 謇九・繝ｩ繝ｳ繝峨・繝ｼ繧ｯ蜃ｦ逅・√ず繧ｧ繧ｹ繝√Ε繝ｼ蛻､螳壹ゞDP繝代こ繝・ヨ逕滓・
+
+## 繧ｻ繝・ヨ繧｢繝・・
+
+### 蜑肴署譚｡莉ｶ
+
+- Unity 6 `6000.3.11f1`
+- Python 3.10莉･荳・- Web繧ｫ繝｡繝ｩ
+
+### Python迺ｰ蠅・
 ```bash
 pip install -r python/requirements.txt
 ```
 
-Run the gesture sender program:
-
+繝医Λ繝・く繝ｳ繧ｰ繝励Ο繧ｰ繝ｩ繝繧呈焔蜍輔〒襍ｷ蜍輔☆繧句ｴ蜷医・縲∽ｻ･荳九ｒ螳溯｡後＠縺ｾ縺吶・
 ```bash
 python python/gesture_sender.py --host 127.0.0.1 --port 5052 --player-id player-1 --camera 0 --show
 ```
 
----
+### Unity
 
-## Unity Setup (Logistics Game)
+1. Unity Editor縺ｧ繝励Ο繧ｸ繧ｧ繧ｯ繝医ｒ髢九￥
+2. `Assets/Scenes/Final Scene.unity`繧帝幕縺・3. Play繝懊ち繝ｳ繧呈款縺・4. 繧ｫ繝｡繝ｩ縺ｮ蜑阪↓謇九ｒ縺九＊縺・
+`RuntimeStartScreen.cs`縺九ｉPython繝励Ο繧ｰ繝ｩ繝繧定ｵｷ蜍輔☆繧区ｧ区・縺ｧ縺ｯ縲√せ繧ｿ繝ｼ繝育判髱｢縺ｮPLAY謫堺ｽ懷ｾ後↓繧ｫ繝｡繝ｩ繝医Λ繝・く繝ｳ繧ｰ縺碁幕蟋九＆繧後∪縺吶ら腸蠅・↓繧医▲縺ｦPython螳溯｡後ヵ繧｡繧､繝ｫ縺ｮ險ｭ螳壹′蠢・ｦ√〒縺吶・
+### 謫堺ｽ懈婿豕・
+| 謫堺ｽ・| 繧ｸ繧ｧ繧ｹ繝√Ε繝ｼ | 莉｣譖ｿ謫堺ｽ・|
+| :--- | :--- | :--- |
+| 謗ｴ繧 | `fist` | E繧ｭ繝ｼ / 繝槭え繧ｹ蟾ｦ繧ｯ繝ｪ繝・け |
+| 謚輔￡繧・| `open` | Space繧ｭ繝ｼ / 繝槭え繧ｹ蜿ｳ繧ｯ繝ｪ繝・け |
 
-1. Open `Assets/Scenes/Final Scene.unity`.
-2. Ensure the `GameController` object has the `LogisticsGameController` and `PackageGrabber` components attached.
-3. Make sure the Python sender is running.
-4. Press **PLAY** in the Unity Editor.
-5. Control the hand avatar using your camera and sort the cardboard boxes!
+## 莉雁ｾ後・逋ｺ螻・
+螳梧・縺励◆菴懷刀繧偵＆繧峨↓逋ｺ螻輔＆縺帙ｋ蝣ｴ蜷医・蛟呵｣懊〒縺吶・
+1. 邂ｱ縺斐→縺ｫ驟埼∝・諠・ｱ繧呈戟縺溘○縲∵ｭ｣縺励＞繝薙Φ縺縺代ｒ蜉轤ｹ縺吶ｋ
+2. 隱崎ｭ倡ｲｾ蠎ｦ縲∬ｪ､隱崎ｭ倡紫縲：PS縲・壻ｿ｡驕・ｻｶ繧定ｨ域ｸｬ繝ｻ陦ｨ遉ｺ縺吶ｋ
+3. Python萓晏ｭ倥Λ繧､繝悶Λ繝ｪ縺ｮ繝舌・繧ｸ繝ｧ繝ｳ繧貞崋螳壹＠縲∝ｮ溯｡檎腸蠅・ｒ蜀咲樟縺励ｄ縺吶￥縺吶ｋ
+4. 譁ｰ譌ｧ縺ｮUDP蜿嶺ｿ｡蜃ｦ逅・ｒ謨ｴ逅・☆繧・5. 髻ｳ螢ｰ蜈･蜉帙ｄ螟夜Κ繝・ヰ繧､繧ｹ縺ｨ縺ｮ騾｣謳ｺ繧定ｿｽ蜉縺吶ｋ
+6. VR / AR迺ｰ蠅・∈蟇ｾ蠢懊☆繧・7. 迚ｩ豬∽ｽ懈･ｭ縺ｮ險鍋ｷｴ邨先棡繧・せ繧ｳ繧｢繧定ｨ倬鹸縺ｧ縺阪ｋ繧医≧縺ｫ縺吶ｋ
 
----
-
-## Low Latency & Hand Smoothing
-
-- **UDP Transport**: Low overhead socket communication avoids game thread blocking.
-- **Lerp Filter**: Configurable `smoothingFactor` (default `0.25`) on the `HandTracking` component controls responsiveness vs stabilization.
-- **Physics Calibration**: Box dimensions and collision parameters have been scaled up for robust gameplay.
+## 縺ｾ縺ｨ繧・
+譛ｬ菴懷刀縺ｧ縺ｯ縲｀ediaPipe縺ｫ繧医ｋ謇九・讀懷・縲￣ython縺ｧ縺ｮ繧ｸ繧ｧ繧ｹ繝√Ε繝ｼ蛻､螳壹ゞDP騾壻ｿ｡縲ゞnity縺ｮ3D繝ｻ迚ｩ逅・ｼ皮ｮ励ｒ邨・∩蜷医ｏ縺帙仝eb繧ｫ繝｡繝ｩ縺縺代〒謫堺ｽ懊〒縺阪ｋ迚ｩ豬√す繝溘Η繝ｬ繝ｼ繧ｷ繝ｧ繝ｳ繧貞ｮ溯｣・＠縺ｾ縺励◆縲・
+逕ｻ蜒剰ｪ崎ｭ倥・邨先棡繧偵Μ繧｢繝ｫ繧ｿ繧､繝繧｢繝励Μ繧ｱ繝ｼ繧ｷ繝ｧ繝ｳ縺ｮ蜈･蜉帙∈螟画鋤縺励√ヮ繧､繧ｺ繧・ｺｧ讓咏ｳｻ縲∫黄逅・ｼ皮ｮ励・蝠城｡後ｒ隗｣豎ｺ縺励↑縺後ｉ縲∝ｮ滄圀縺ｫ謫堺ｽ懊〒縺阪ｋ蠖｢縺ｾ縺ｧ邨ｱ蜷医＠縺溽せ縺梧悽菴懷刀縺ｮ荳ｭ蠢・噪縺ｪ謌先棡縺ｧ縺吶・

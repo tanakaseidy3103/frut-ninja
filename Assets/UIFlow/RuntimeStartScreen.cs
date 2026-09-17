@@ -291,23 +291,28 @@ public class RuntimeStartScreen : MonoBehaviour
             return;
         }
 
+        cameraProcess = TryStartCameraProcess(pythonExecutable, senderPath, projectRoot);
+        if (cameraProcess == null || cameraProcess.HasExited)
+        {
+            cameraProcess = TryStartCameraProcess("py", senderPath, projectRoot);
+        }
+
+        if (cameraProcess == null)
+        {
+            Debug.LogWarning("Camera sender could not be started. Run python/run_camera_tracking.bat manually.");
+        }
+    }
+
+    private System.Diagnostics.Process TryStartCameraProcess(string executable, string senderPath, string projectRoot)
+    {
         try
         {
-            cameraProcess = StartCameraProcess(pythonExecutable, senderPath, projectRoot);
-
-            if (cameraProcess == null || cameraProcess.HasExited)
-            {
-                cameraProcess = StartCameraProcess("py", senderPath, projectRoot);
-            }
-
-            if (cameraProcess == null)
-            {
-                Debug.LogWarning("Camera sender could not be started. Run python/run_camera_tracking.bat manually.");
-            }
+            return StartCameraProcess(executable, senderPath, projectRoot);
         }
         catch (System.Exception exception)
         {
-            Debug.LogWarning("Could not start camera sender. Run python/gesture_sender.py manually if needed. Error: " + exception.Message);
+            Debug.LogWarning("Could not start camera sender with " + executable + ": " + exception.Message);
+            return null;
         }
     }
 

@@ -124,23 +124,23 @@ public class RuntimeStartScreen : MonoBehaviour
         layout.childControlWidth = true;
         layout.childControlHeight = false;
 
-        TMP_Text title = CreateText(panel, "HAND DETECTION 3D", 48, FontStyles.Bold, TextAlignmentOptions.Center);
+        TMP_Text title = CreateText(panel, "繝上Φ繝峨ヨ繝ｩ繝・く繝ｳ繧ｰ 3D", 48, FontStyles.Bold, TextAlignmentOptions.Center);
         title.color = new Color(0.94f, 0.98f, 1f);
         AddLayout(title.gameObject, 540f, 70f);
 
-        TMP_Text subtitle = CreateText(panel, "Controle a mao pela camera", 24, FontStyles.Normal, TextAlignmentOptions.Center);
+        TMP_Text subtitle = CreateText(panel, "繧ｫ繝｡繝ｩ縺ｧ謇九ｒ謫堺ｽ・, 24, FontStyles.Normal, TextAlignmentOptions.Center);
         subtitle.color = new Color(0.72f, 0.82f, 0.88f);
         AddLayout(subtitle.gameObject, 540f, 40f);
 
-        TMP_Text hint = CreateText(panel, "Prepare a camera e aperte jogar para iniciar.", 20, FontStyles.Normal, TextAlignmentOptions.Center);
+        TMP_Text hint = CreateText(panel, "繧ｫ繝｡繝ｩ繧呈ｺ門ｙ縺励※縲後・繝ｬ繧､縲阪ｒ謚ｼ縺励※縺上□縺輔＞縲・, 20, FontStyles.Normal, TextAlignmentOptions.Center);
         hint.color = new Color(0.58f, 0.66f, 0.72f);
         AddLayout(hint.gameObject, 540f, 36f);
 
-        Button playButton = CreateButton(panel, "JOGAR", new Color(0.0f, 0.72f, 0.78f), new Color(0.94f, 1f, 1f));
+        Button playButton = CreateButton(panel, "繝励Ξ繧､", new Color(0.0f, 0.72f, 0.78f), new Color(0.94f, 1f, 1f));
         AddLayout(playButton.gameObject, 320f, 64f);
         playButton.onClick.AddListener(StartGame);
 
-        Button quitButton = CreateButton(panel, "SAIR", new Color(0.18f, 0.21f, 0.25f), new Color(0.82f, 0.88f, 0.92f));
+        Button quitButton = CreateButton(panel, "邨ゆｺ・, new Color(0.18f, 0.21f, 0.25f), new Color(0.82f, 0.88f, 0.92f));
         AddLayout(quitButton.gameObject, 320f, 52f);
         quitButton.onClick.AddListener(QuitGame);
     }
@@ -293,25 +293,63 @@ public class RuntimeStartScreen : MonoBehaviour
 
         try
         {
-            System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo
-            {
-                FileName = pythonExecutable,
-                Arguments = Quote(senderPath)
-                    + " --host 127.0.0.1"
-                    + " --port 5052"
-                    + " --player-id player-1"
-                    + " --camera " + Quote(cameraIndex)
-                    + " --show",
-                WorkingDirectory = projectRoot,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-            };
+            cameraProcess = StartCameraProcess(pythonExecutable, senderPath, projectRoot);
 
-            cameraProcess = System.Diagnostics.Process.Start(startInfo);
+            if (cameraProcess == null || cameraProcess.HasExited)
+            {
+                cameraProcess = StartCameraProcess("py", senderPath, projectRoot);
+            }
+
+            if (cameraProcess == null)
+            {
+                Debug.LogWarning("Camera sender could not be started. Run python/run_camera_tracking.bat manually.");
+            }
         }
         catch (System.Exception exception)
         {
             Debug.LogWarning("Could not start camera sender. Run python/gesture_sender.py manually if needed. Error: " + exception.Message);
+        }
+    }
+
+    private System.Diagnostics.Process StartCameraProcess(string executable, string senderPath, string projectRoot)
+    {
+        System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = executable,
+            Arguments = "-u " + Quote(senderPath)
+                + " --host 127.0.0.1"
+                + " --port 5052"
+                + " --player-id player-1"
+                + " --camera " + Quote(cameraIndex)
+                + " --show",
+            WorkingDirectory = projectRoot,
+            UseShellExecute = false,
+            CreateNoWindow = false,
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+        };
+
+        System.Diagnostics.Process process = System.Diagnostics.Process.Start(startInfo);
+        process.OutputDataReceived += OnCameraOutput;
+        process.ErrorDataReceived += OnCameraError;
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
+        return process;
+    }
+
+    private void OnCameraOutput(object sender, System.Diagnostics.DataReceivedEventArgs args)
+    {
+        if (!string.IsNullOrWhiteSpace(args.Data))
+        {
+            Debug.Log("Camera sender: " + args.Data);
+        }
+    }
+
+    private void OnCameraError(object sender, System.Diagnostics.DataReceivedEventArgs args)
+    {
+        if (!string.IsNullOrWhiteSpace(args.Data))
+        {
+            Debug.LogWarning("Camera sender error: " + args.Data);
         }
     }
 

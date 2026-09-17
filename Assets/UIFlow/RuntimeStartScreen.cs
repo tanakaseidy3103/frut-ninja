@@ -128,19 +128,19 @@ public class RuntimeStartScreen : MonoBehaviour
         title.color = new Color(0.94f, 0.98f, 1f);
         AddLayout(title.gameObject, 540f, 70f);
 
-        TMP_Text subtitle = CreateText(panel, "Control the hand with the camera", 24, FontStyles.Normal, TextAlignmentOptions.Center);
+        TMP_Text subtitle = CreateText(panel, "Controle a mao pela camera", 24, FontStyles.Normal, TextAlignmentOptions.Center);
         subtitle.color = new Color(0.72f, 0.82f, 0.88f);
         AddLayout(subtitle.gameObject, 540f, 40f);
 
-        TMP_Text hint = CreateText(panel, "Prepare the camera and press play to start.", 20, FontStyles.Normal, TextAlignmentOptions.Center);
+        TMP_Text hint = CreateText(panel, "Prepare a camera e aperte jogar para iniciar.", 20, FontStyles.Normal, TextAlignmentOptions.Center);
         hint.color = new Color(0.58f, 0.66f, 0.72f);
         AddLayout(hint.gameObject, 540f, 36f);
 
-        Button playButton = CreateButton(panel, "PLAY", new Color(0.0f, 0.72f, 0.78f), new Color(0.94f, 1f, 1f));
+        Button playButton = CreateButton(panel, "JOGAR", new Color(0.0f, 0.72f, 0.78f), new Color(0.94f, 1f, 1f));
         AddLayout(playButton.gameObject, 320f, 64f);
         playButton.onClick.AddListener(StartGame);
 
-        Button quitButton = CreateButton(panel, "QUIT", new Color(0.18f, 0.21f, 0.25f), new Color(0.82f, 0.88f, 0.92f));
+        Button quitButton = CreateButton(panel, "SAIR", new Color(0.18f, 0.21f, 0.25f), new Color(0.82f, 0.88f, 0.92f));
         AddLayout(quitButton.gameObject, 320f, 52f);
         quitButton.onClick.AddListener(QuitGame);
     }

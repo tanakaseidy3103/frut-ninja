@@ -126,23 +126,23 @@ public class RuntimeStartScreen : MonoBehaviour
         layout.childControlWidth = true;
         layout.childControlHeight = false;
 
-        TMP_Text title = CreateText(panel, "繝上Φ繝峨ヨ繝ｩ繝・く繝ｳ繧ｰ 3D", 48, FontStyles.Bold, TextAlignmentOptions.Center);
+        TMP_Text title = CreateText(panel, "ハンドトラッキング 3D", 48, FontStyles.Bold, TextAlignmentOptions.Center);
         title.color = new Color(0.94f, 0.98f, 1f);
         AddLayout(title.gameObject, 540f, 70f);
 
-        TMP_Text subtitle = CreateText(panel, "繧ｫ繝｡繝ｩ縺ｧ謇九ｒ謫堺ｽ・, 24, FontStyles.Normal, TextAlignmentOptions.Center);
+        TMP_Text subtitle = CreateText(panel, "カメラで手を操作", 24, FontStyles.Normal, TextAlignmentOptions.Center);
         subtitle.color = new Color(0.72f, 0.82f, 0.88f);
         AddLayout(subtitle.gameObject, 540f, 40f);
 
-        TMP_Text hint = CreateText(panel, "繧ｫ繝｡繝ｩ繧呈ｺ門ｙ縺励※縲後・繝ｬ繧､縲阪ｒ謚ｼ縺励※縺上□縺輔＞縲・, 20, FontStyles.Normal, TextAlignmentOptions.Center);
+        TMP_Text hint = CreateText(panel, "カメラを準備して「プレイ」を押してください。", 20, FontStyles.Normal, TextAlignmentOptions.Center);
         hint.color = new Color(0.58f, 0.66f, 0.72f);
         AddLayout(hint.gameObject, 540f, 36f);
 
-        Button playButton = CreateButton(panel, "繝励Ξ繧､", new Color(0.0f, 0.72f, 0.78f), new Color(0.94f, 1f, 1f));
+        Button playButton = CreateButton(panel, "プレイ", new Color(0.0f, 0.72f, 0.78f), new Color(0.94f, 1f, 1f));
         AddLayout(playButton.gameObject, 320f, 64f);
         playButton.onClick.AddListener(StartGame);
 
-        Button quitButton = CreateButton(panel, "邨ゆｺ・, new Color(0.18f, 0.21f, 0.25f), new Color(0.82f, 0.88f, 0.92f));
+        Button quitButton = CreateButton(panel, "終了", new Color(0.18f, 0.21f, 0.25f), new Color(0.82f, 0.88f, 0.92f));
         AddLayout(quitButton.gameObject, 320f, 52f);
         quitButton.onClick.AddListener(QuitGame);
     }

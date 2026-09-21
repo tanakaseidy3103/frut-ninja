@@ -126,19 +126,19 @@ public class RuntimeStartScreen : MonoBehaviour
         layout.childControlWidth = true;
         layout.childControlHeight = false;
 
-        TMP_Text title = CreateText(panel, "AI HAND TRACKING 3D", 40, FontStyles.Bold, TextAlignmentOptions.Center);
-        title.color = new Color(0.94f, 0.98f, 1f);
+        TMP_Text title = CreateText(panel, "3D HAND FRUIT NINJA", 40, FontStyles.Bold, TextAlignmentOptions.Center);
+        title.color = new Color(1f, 0.85f, 0.1f);
         AddLayout(title.gameObject, 540f, 60f);
 
-        TMP_Text subtitle = CreateText(panel, "MediaPipe Vision AI + Unity", 22, FontStyles.Normal, TextAlignmentOptions.Center);
-        subtitle.color = new Color(0.3f, 0.85f, 1f);
+        TMP_Text subtitle = CreateText(panel, "Slice Flying Fruits With Your Hand!", 22, FontStyles.Normal, TextAlignmentOptions.Center);
+        subtitle.color = new Color(0.2f, 1f, 0.4f);
         AddLayout(subtitle.gameObject, 540f, 35f);
 
-        TMP_Text hint = CreateText(panel, "Move your hand in front of camera to slice energy orbs!", 18, FontStyles.Normal, TextAlignmentOptions.Center);
-        hint.color = new Color(0.75f, 0.88f, 0.95f);
+        TMP_Text hint = CreateText(panel, "Swipe fast to slice fruits / Avoid bombs!", 18, FontStyles.Normal, TextAlignmentOptions.Center);
+        hint.color = new Color(0.9f, 0.95f, 1f);
         AddLayout(hint.gameObject, 540f, 45f);
 
-        Button playButton = CreateButton(panel, "PLAY GAME", new Color(0.0f, 0.72f, 0.78f), new Color(0.94f, 1f, 1f));
+        Button playButton = CreateButton(panel, "PLAY NINJA", new Color(0.95f, 0.3f, 0.1f), new Color(1f, 1f, 1f));
         AddLayout(playButton.gameObject, 320f, 60f);
         playButton.onClick.AddListener(StartGame);
 
@@ -280,6 +280,12 @@ public class RuntimeStartScreen : MonoBehaviour
         {
             Destroy(canvas.gameObject);
             canvas = null;
+        }
+
+        if (FindFirstObjectByType<FruitNinjaGameController>() == null)
+        {
+            GameObject ninjaObj = new GameObject("FruitNinjaSystem");
+            ninjaObj.AddComponent<FruitNinjaGameController>();
         }
 
         GameStarted?.Invoke();

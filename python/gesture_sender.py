@@ -8,68 +8,6 @@ import cv2
 import mediapipe as mp
 
 
-class LedController:
-    def __init__(self, pin=None, threshold=0.12, debounce_frames=3):
-        self.pin = pin
-        self.threshold = threshold
-        self.debounce_frames = debounce_frames
-        self.led_state = False
-        self.near_count = 0
-        self.far_count = 0
-        self.gpio = None
-
-        if pin is not None:
-            try:
-                import RPi.GPIO as GPIO  # type: ignore
-
-                GPIO.setmode(GPIO.BCM)
-                GPIO.setup(pin, GPIO.OUT)
-                GPIO.output(pin, GPIO.LOW)
-                self.gpio = GPIO
-                print(f"[INFO] LED GPIO inicializado no pino BCM {pin}")
-            except Exception as exc:
-                print(f"[AVISO] Falha ao inicializar GPIO: {exc}")
-                print("[AVISO] Continuando sem controle fisico de LED.")
-
-    @staticmethod
-    def _hand_area_ratio(landmarks):
-        if not landmarks:
-            return 0.0
-        xs = [point[0] for point in landmarks]
-        ys = [point[1] for point in landmarks]
-        return max(max(xs) - min(xs), 0.0) * max(max(ys) - min(ys), 0.0)
-
-    def _set_led(self, state):
-        if state == self.led_state:
-            return
-        self.led_state = state
-        if self.gpio is not None and self.pin is not None:
-            self.gpio.output(self.pin, self.gpio.HIGH if state else self.gpio.LOW)
-
-    def update(self, landmarks):
-        area_ratio = self._hand_area_ratio(landmarks)
-        is_near = bool(landmarks) and (area_ratio >= self.threshold)
-
-        if is_near:
-            self.near_count += 1
-            self.far_count = 0
-        else:
-            self.far_count += 1
-            self.near_count = 0
-
-        if self.near_count >= self.debounce_frames and self.pin is not None:
-            self._set_led(True)
-        elif self.far_count >= self.debounce_frames and self.pin is not None:
-            self._set_led(False)
-
-        return is_near, area_ratio
-
-    def cleanup(self):
-        if self.gpio is not None and self.pin is not None:
-            self.gpio.output(self.pin, self.gpio.LOW)
-            self.gpio.cleanup()
-
-
 class GestureTracker:
     def __init__(self, swipe_threshold=0.12, history_size=6):
         self.swipe_threshold = swipe_threshold
@@ -206,16 +144,6 @@ def build_packet(player_id, source_name, gesture, command, landmarks):
     }
 
 
-def build_led_packet(gesture, is_near, area_ratio):
-    return {
-        "type": "led_relay",
-        "gesture": gesture,
-        "isNear": bool(is_near),
-        "areaRatio": float(area_ratio),
-        "timestampMs": int(time.time() * 1000),
-    }
-
-
 def draw_debug(frame, landmarks, gesture, command, fps):
     height, width = frame.shape[:2]
     for x, y, _ in landmarks:
@@ -224,29 +152,7 @@ def draw_debug(frame, landmarks, gesture, command, fps):
     cv2.putText(frame, f"gesture: {gesture}", (16, 28), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 255), 2)
     cv2.putText(frame, f"moveX: {command['moveX']:.2f}", (16, 58), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2)
     cv2.putText(frame, f"moveZ: {command['moveZ']:.2f}", (16, 86), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2)
-    cv2.putText(frame, f"jump: {command['jump']} attack: {command['attack']}", (16, 114), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2)
-    cv2.putText(frame, f"fps: {fps:.1f}", (16, 142), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2)
-
-
-def draw_led_debug(frame, is_near, area_ratio, threshold, led_on):
-    cv2.putText(
-        frame,
-        f"near: {is_near} area: {area_ratio:.3f} thr: {threshold:.3f}",
-        (16, 170),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.6,
-        (0, 255, 0) if is_near else (0, 0, 255),
-        2,
-    )
-    cv2.putText(
-        frame,
-        f"LED: {'ON' if led_on else 'OFF'}",
-        (16, 198),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.6,
-        (0, 255, 255),
-        2,
-    )
+    cv2.putText(frame, f"fps: {fps:.1f}", (16, 114), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2)
 
 
 def main():
@@ -257,43 +163,45 @@ def main():
     parser.add_argument("--camera", default="0", help="OpenCV camera index or network camera URL")
     parser.add_argument("--camera-name", default="webcam", help="Source label stored in the packet")
     parser.add_argument("--show", action="store_true", help="Show the OpenCV debug window")
-    parser.add_argument("--led-pin", type=int, default=None, help="Pino BCM do LED no Raspberry (opcional)")
-    parser.add_argument(
-        "--near-threshold",
-        type=float,
-        default=0.12,
-        help="Area minima da mao para considerar 'perto' e ligar LED",
-    )
-    parser.add_argument("--relay-host", default=None, help="IP opcional para relay de LED por UDP")
-    parser.add_argument("--relay-port", type=int, default=5053, help="Porta UDP do relay de LED")
+    parser.add_argument("--max-fps", type=int, default=45, help="Limit max send rate to save CPU and avoid network flood")
     args = parser.parse_args()
 
     capture = open_camera(parse_camera_source(args.camera))
     if not capture.isOpened():
         raise RuntimeError(f"Could not open camera source: {args.camera}")
 
+    # Set camera resolution to optimal 640x480 for ultra fast processing
+    capture.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+
     if args.show:
         cv2.namedWindow("Gesture Sender", cv2.WINDOW_NORMAL)
         cv2.waitKey(1)
 
     tracker = GestureTracker()
-    led_controller = LedController(pin=args.led_pin, threshold=args.near_threshold)
     socket_client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     mp_hands = mp.solutions.hands
     mp_draw = mp.solutions.drawing_utils
 
+    min_frame_interval = 1.0 / max(10, args.max_fps)
+    last_send_time = 0.0
     prev_frame_time = time.time()
 
     with mp_hands.Hands(
         static_image_mode=False,
-        model_complexity=1,
+        model_complexity=0,  # Model 0 is ultra lightweight and fast
         max_num_hands=1,
         min_detection_confidence=0.6,
         min_tracking_confidence=0.5,
     ) as hands:
         try:
             while True:
+                current_time = time.time()
+                elapsed = current_time - last_send_time
+                if elapsed < min_frame_interval:
+                    time.sleep(max(0.001, min_frame_interval - elapsed))
+
                 has_frame, frame = capture.read()
                 if not has_frame:
                     break
@@ -315,32 +223,22 @@ def main():
                     if args.show:
                         mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
-                is_near, area_ratio = led_controller.update(landmarks)
-
+                # Send packet to Unity
                 packet = build_packet(args.player_id, args.camera_name, gesture, command, landmarks)
                 socket_client.sendto(json.dumps(packet).encode("utf-8"), (args.host, args.port))
+                last_send_time = time.time()
 
-                if args.relay_host:
-                    relay_packet = build_led_packet(gesture, is_near, area_ratio)
-                    socket_client.sendto(
-                        json.dumps(relay_packet).encode("utf-8"),
-                        (args.relay_host, args.relay_port),
-                    )
-
-                current_time = time.time()
-                fps = 1.0 / max(current_time - prev_frame_time, 1e-6)
-                prev_frame_time = current_time
+                fps = 1.0 / max(last_send_time - prev_frame_time, 1e-6)
+                prev_frame_time = last_send_time
 
                 if args.show:
                     draw_debug(frame, landmarks, gesture, command, fps)
-                    if args.led_pin is not None:
-                        draw_led_debug(frame, is_near, area_ratio, args.near_threshold, led_controller.led_state)
                     cv2.imshow("Gesture Sender", frame)
                     key = cv2.waitKey(1) & 0xFF
                     if key in (27, ord("q")):
                         break
         finally:
-            led_controller.cleanup()
+            pass
 
     capture.release()
     socket_client.close()

@@ -1,12 +1,9 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-
 public class HandTracking : MonoBehaviour
 {
-    // Start is called before the first frame update
     public UDPReceive udpReceive;
     public GameObject[] handPoints;
     public bool useJsonLandmarks = true;
@@ -17,78 +14,70 @@ public class HandTracking : MonoBehaviour
     public bool invertZ = true;
     public bool calibrateFromFirstPacket = true;
     [Range(0.01f, 1f)]
-    public float smoothingFactor = 0.25f;
+    public float smoothingFactor = 0.35f;
     public bool printParseErrors = false;
 
     private Vector3[] initialLocalPositions;
+    private Vector3[] targetPositions;
     private GestureLandmark[] jsonReferenceLandmarks;
     private bool hasJsonReference;
+    private string lastProcessedData = "";
+
     void Start()
     {
         if (udpReceive == null)
         {
             udpReceive = FindFirstObjectByType<UDPReceive>();
         }
-        timeLeft = updateInterval;
         CacheInitialPointPositions();
-        
     }
-
-    // Update is called once per frame
-    
-    public float updateInterval = 0.5f; // The interval at which to update the FPS display
-    private float accum = 0f; // FPS accumulated over the interval
-    private int frames = 0; // Frames drawn over the interval
-    private float timeLeft; // Time left for current interval
-    public float shift = 7 ;
 
     void Update()
     {
-        if (udpReceive == null)
-        {
-            return;
-        }
+        if (udpReceive == null) return;
 
         string data = udpReceive.data;
-        if (string.IsNullOrWhiteSpace(data))
+        if (!string.IsNullOrWhiteSpace(data) && data != lastProcessedData)
         {
-            return;
+            lastProcessedData = data;
+            try
+            {
+                if (data.StartsWith("{"))
+                {
+                    TryApplyJsonPacket(data);
+                }
+                else
+                {
+                    TryApplyLegacyPacket(data);
+                }
+            }
+            catch (Exception err)
+            {
+                if (printParseErrors)
+                {
+                    Debug.LogWarning("HandTracking parse error: " + err.Message);
+                }
+            }
         }
 
-        try
+        // Smoothly interpolate towards target positions
+        if (targetPositions != null && handPoints != null)
         {
-            if (data.Trim().StartsWith("{"))
+            int count = Mathf.Min(handPoints.Length, targetPositions.Length);
+            for (int i = 0; i < count; i++)
             {
-                TryApplyJsonPacket(data);
-            }
-            else
-            {
-                TryApplyLegacyPacket(data);
-            }
-        }
-        catch (Exception err)
-        {
-            if (printParseErrors)
-            {
-                Debug.LogWarning($"HandTracking parse error: {err.Message}");
+                if (handPoints[i] != null)
+                {
+                    handPoints[i].transform.localPosition = Vector3.Lerp(handPoints[i].transform.localPosition, targetPositions[i], smoothingFactor);
+                }
             }
         }
     }
 
     private bool TryApplyJsonPacket(string data)
     {
-        if (!data.StartsWith("{"))
-        {
-            return false;
-        }
-
         GesturePacket packet = JsonUtility.FromJson<GesturePacket>(data);
-        if (packet == null)
-        {
-            return true;
-        }
-
-        if (packet.landmarks == null || packet.landmarks.Length == 0)
+        if (packet == null || packet.landmarks == null || packet.landmarks.Length == 0)
         {
             return true;
         }
@@ -107,10 +96,7 @@ public class HandTracking : MonoBehaviour
         int pointCount = Mathf.Min(21, Mathf.Min(handPoints.Length, packet.landmarks.Length));
         for (int i = 0; i < pointCount; i++)
         {
-            if (handPoints[i] == null)
-            {
-                continue;
-            }
+            if (handPoints[i] == null) continue;
 
             GestureLandmark landmark = packet.landmarks[i];
             float dx = landmark.x;
@@ -124,27 +110,15 @@ public class HandTracking : MonoBehaviour
                 dz -= jsonReferenceLandmarks[i].z;
             }
 
-            if (mirrorX)
-            {
-                dx = -dx;
-            }
-
-            if (invertY)
-            {
-                dy = -dy;
-            }
-
-            if (invertZ)
-            {
-                dz = -dz;
-            }
+            if (mirrorX) dx = -dx;
+            if (invertY) dy = -dy;
+            if (invertZ) dz = -dz;
 
             float x = initialLocalPositions[i].x + (dx * jsonDeltaScale.x) + jsonPositionOffset.x;
             float y = initialLocalPositions[i].y + (dy * jsonDeltaScale.y) + jsonPositionOffset.y;
             float z = initialLocalPositions[i].z + (dz * jsonDeltaScale.z) + jsonPositionOffset.z;
 
-            Vector3 targetPos = new Vector3(x, y, z);
-            handPoints[i].transform.localPosition = Vector3.Lerp(handPoints[i].transform.localPosition, targetPos, smoothingFactor);
+            targetPositions[i] = new Vector3(x, y, z);
         }
 
         return true;
@@ -152,29 +126,21 @@ public class HandTracking : MonoBehaviour
 
     private void TryApplyLegacyPacket(string data)
     {
-        if (data.Length < 2)
-        {
-            return;
-        }
+        if (data.Length < 2) return;
 
-        data = data.Remove(0, 1);
-        data = data.Remove(data.Length - 1, 1);
+        data = data.Substring(1, data.Length - 2);
         string[] points = data.Split(',');
 
         int pointCount = Mathf.Min(21, handPoints.Length);
         for (int i = 0; i < pointCount; i++)
         {
-            if (handPoints[i] == null)
-            {
-                continue;
-            }
+            if (handPoints[i] == null || (i * 3 + 2) >= points.Length) continue;
 
-            float x = 32.83f - float.Parse(points[i * 3]) / 100;
-            float y = float.Parse(points[i * 3 + 1]) / 100;
-            float z = float.Parse(points[i * 3 + 2]) / 100;
+            float x = 32.83f - float.Parse(points[i * 3]) / 100f;
+            float y = float.Parse(points[i * 3 + 1]) / 100f;
+            float z = float.Parse(points[i * 3 + 2]) / 100f;
 
-            Vector3 targetPos = new Vector3(x, y, z);
-            handPoints[i].transform.localPosition = Vector3.Lerp(handPoints[i].transform.localPosition, targetPos, smoothingFactor);
+            targetPositions[i] = new Vector3(x, y, z);
         }
     }
 
@@ -193,15 +159,18 @@ public class HandTracking : MonoBehaviour
         if (handPoints == null)
         {
             initialLocalPositions = new Vector3[0];
+            targetPositions = new Vector3[0];
             return;
         }
 
         initialLocalPositions = new Vector3[handPoints.Length];
+        targetPositions = new Vector3[handPoints.Length];
         for (int i = 0; i < handPoints.Length; i++)
         {
             if (handPoints[i] != null)
             {
                 initialLocalPositions[i] = handPoints[i].transform.localPosition;
+                targetPositions[i] = initialLocalPositions[i];
             }
         }
     }

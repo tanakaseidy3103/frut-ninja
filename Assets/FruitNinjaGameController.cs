@@ -181,7 +181,11 @@ public class FruitNinjaGameController : MonoBehaviour
         }
     }
 
+    private void FindHandReferences()
+    {
+        handTracking = FindFirstObjectByType<HandTracking>();
 
+        // 1. Try HandCon (most common in this project)
         HandCon handCon = FindFirstObjectByType<HandCon>();
         if (handCon != null && handCon.bone != null)
         {

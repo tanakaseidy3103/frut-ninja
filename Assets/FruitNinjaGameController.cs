@@ -30,8 +30,10 @@ public class FruitNinjaGameController : MonoBehaviour
 
     [Header("Blade Settings")]
     public float sliceRadius = 3.2f;
-    [Tooltip("Local offset from the hand bone used to approximate the fingertip when no rigged fingertip bone is found. Tweak this in Play mode until the blade sits on the visible finger.")]
-    public Vector3 fingerTipLocalOffset = new Vector3(0f, 0.15f, 0.35f);
+    [Tooltip("World-space direction (from the wrist bone) the blade anchor is pushed toward, in case no rigged fingertip bone is found. Tweak in Play mode until it sits on the finger.")]
+    public Vector3 fingerTipDirection = new Vector3(0f, 0.3f, 1f);
+    [Tooltip("World-space distance (in Unity units) the blade anchor is pushed from the wrist bone along fingerTipDirection.")]
+    public float fingerTipDistance = 0.6f;
 
     [Header("Spawn Settings")]
     public float minSpawnDelay = 0.9f;
@@ -41,6 +43,7 @@ public class FruitNinjaGameController : MonoBehaviour
 
     private Transform handTransform;
     private Transform fingerTipTransform;
+    private bool fingerTipIsSyntheticAnchor;
     private HandTracking handTracking;
     private TrailRenderer bladeTrail;
     private AudioSource audioSource;
@@ -92,6 +95,13 @@ public class FruitNinjaGameController : MonoBehaviour
                 RestartGame();
             }
             return;
+        }
+
+        // Keep re-positioning the synthetic blade anchor every frame; scale in the hand's
+        // hierarchy can shrink a localPosition offset, so this is driven in world space instead.
+        if (fingerTipIsSyntheticAnchor && fingerTipTransform != null)
+        {
+            fingerTipTransform.position = handTransform.position + handTransform.TransformDirection(fingerTipDirection.normalized) * fingerTipDistance;
         }
 
         // Check slicing collisions against all hand points
@@ -247,6 +257,7 @@ public class FruitNinjaGameController : MonoBehaviour
         if (riggedTip != null)
         {
             fingerTipTransform = riggedTip;
+            fingerTipIsSyntheticAnchor = false;
             return;
         }
 
@@ -262,7 +273,8 @@ public class FruitNinjaGameController : MonoBehaviour
             fingerTipTransform = existingAnchor;
         }
 
-        fingerTipTransform.localPosition = fingerTipLocalOffset;
+        fingerTipIsSyntheticAnchor = true;
+        fingerTipTransform.position = handTransform.position + handTransform.TransformDirection(fingerTipDirection.normalized) * fingerTipDistance;
     }
 
     // Heuristic search for a rigged index-fingertip bone inside the visible hand model

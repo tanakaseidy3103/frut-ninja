@@ -7,14 +7,16 @@ public class HandTracking : MonoBehaviour
     public UDPReceive udpReceive;
     public GameObject[] handPoints;
     public bool useJsonLandmarks = true;
-    public Vector3 jsonDeltaScale = new Vector3(6f, 6f, 6f);
+    public Vector3 jsonDeltaScale = new Vector3(12f, 11f, 9f);
     public Vector3 jsonPositionOffset = Vector3.zero;
     public bool mirrorX = true;
     public bool invertY = true;
     public bool invertZ = true;
     public bool calibrateFromFirstPacket = true;
+    [Header("Responsiveness and Smoothing")]
+    public float smoothSpeed = 25f;
     [Range(0.01f, 1f)]
-    public float smoothingFactor = 0.35f;
+    public float smoothingFactor = 0.55f;
     public bool printParseErrors = false;
 
     private Vector3[] initialLocalPositions;
@@ -60,15 +62,16 @@ public class HandTracking : MonoBehaviour
             }
         }
 
-        // Smoothly interpolate towards target positions
+        // Smoothly and responsively interpolate towards target positions
         if (targetPositions != null && handPoints != null)
         {
             int count = Mathf.Min(handPoints.Length, targetPositions.Length);
+            float lerpFactor = 1f - Mathf.Exp(-smoothSpeed * Time.deltaTime);
             for (int i = 0; i < count; i++)
             {
                 if (handPoints[i] != null)
                 {
-                    handPoints[i].transform.localPosition = Vector3.Lerp(handPoints[i].transform.localPosition, targetPositions[i], smoothingFactor);
+                    handPoints[i].transform.localPosition = Vector3.Lerp(handPoints[i].transform.localPosition, targetPositions[i], lerpFactor);
                 }
             }
         }

@@ -10,20 +10,20 @@ public class HandCon : MonoBehaviour
     public GameObject bone ;
     public int factorX , factorY ;
     public float offsetX , offsetY ;
+    public float smoothSpeed = 26f;
     private Vector3 startPos ;
     private Vector3 HandPos ;
 
-
-
-
     void Start()
     {
-        startPos = sp1.transform.position;
-        HandPos = bone.transform.position;
+        if (sp1 != null) startPos = sp1.transform.position;
+        if (bone != null) HandPos = bone.transform.position;
     }
 
     void Update()
     {
+        if (sp1 == null || sp2 == null || bone == null) return;
+
         Vector3 direction ;
         double angleYZ , angleXY ;
         
@@ -59,16 +59,18 @@ public class HandCon : MonoBehaviour
         RealAngleXY = RealAngleXY * factorX + offsetX;
         RealAngleYZ = RealAngleYZ * factorY + offsetY;
 
-   
-        bone.transform.localRotation = Quaternion.Euler(new Vector3(RealAngleYZ,180,RealAngleXY));
+        float t = 1f - Mathf.Exp(-smoothSpeed * Time.deltaTime);
 
-        bone.transform.position = HandPos + sp1.transform.position - startPos;
-        Vector3 temp = new Vector3(
-            bone.transform.position.x,
-            bone.transform.position.y,
-            -Vector3.Distance(sp1.transform.position,sp2.transform.position)*10
+        Quaternion targetRot = Quaternion.Euler(new Vector3(RealAngleYZ, 180, RealAngleXY));
+        bone.transform.localRotation = Quaternion.Slerp(bone.transform.localRotation, targetRot, t);
+
+        Vector3 basePos = HandPos + sp1.transform.position - startPos;
+        Vector3 targetPos = new Vector3(
+            basePos.x,
+            basePos.y,
+            -Vector3.Distance(sp1.transform.position, sp2.transform.position) * 10f
         );
-        bone.transform.position= temp;
+        bone.transform.position = Vector3.Lerp(bone.transform.position, targetPos, t);
     }
 
     private double getYawAngle( Vector3 direction )

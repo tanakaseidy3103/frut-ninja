@@ -58,56 +58,65 @@ public class HandController : MonoBehaviour
         return (float)-((angleDegrees + 360.0) % 360.0);
     }
 
+    [Header("Smoothing")]
+    public float smoothSpeed = 24f;
+
     void Update()
     {
         if (points == null || points.Count < 18) return;
-
-        Vector3 temp;
 
         // Finger 1 (bend forward)
         for (int i = 0; i < 3; i++)
         {
             if (points[i * 3] != null && points[i * 3 + 1] != null && points[i * 3 + 2] != null)
             {
-                temp = new Vector3(
+                Vector3 temp = new Vector3(
                     -getAngleX(points[i * 3 + 1], points[i * 3 + 2]),
                     points[i * 3].transform.localEulerAngles.y,
                     -getAngleZ(points[i * 3 + 1], points[i * 3 + 2])
                 );
-                points[i * 3].transform.localEulerAngles = temp;
+                ApplySmoothRotation(points[i * 3].transform, temp);
             }
         }
 
         // Finger 2
         if (points[9] != null && points[10] != null && points[11] != null)
         {
-            temp = new Vector3(
+            Vector3 temp = new Vector3(
                 getAngleX(points[10], points[11]),
                 points[9].transform.localEulerAngles.y,
                 getAngleZ(points[10], points[11])
             );
-            points[9].transform.localEulerAngles = temp;
+            ApplySmoothRotation(points[9].transform, temp);
         }
 
         if (points[12] != null && points[13] != null && points[14] != null)
         {
-            temp = new Vector3(
+            Vector3 temp = new Vector3(
                 getAngleX(points[13], points[14]),
                 points[12].transform.localEulerAngles.y,
                 getAngleZ(points[13], points[14])
             );
-            points[12].transform.localEulerAngles = temp;
+            ApplySmoothRotation(points[12].transform, temp);
         }
 
         if (points[15] != null && points[16] != null && points[17] != null)
         {
-            temp = new Vector3(
+            Vector3 temp = new Vector3(
                 getAngleX(points[16], points[17]),
                 points[15].transform.localEulerAngles.y,
                 getAngleZ(points[16], points[17])
             );
-            points[15].transform.localEulerAngles = temp;
+            ApplySmoothRotation(points[15].transform, temp);
         }
+    }
+
+    private void ApplySmoothRotation(Transform targetTransform, Vector3 targetEuler)
+    {
+        if (targetTransform == null) return;
+        Quaternion targetRot = Quaternion.Euler(targetEuler);
+        float t = 1f - Mathf.Exp(-smoothSpeed * Time.deltaTime);
+        targetTransform.localRotation = Quaternion.Slerp(targetTransform.localRotation, targetRot, t);
     }
 
     void GetAllChilds(Transform parent, List<Transform> Mylist)

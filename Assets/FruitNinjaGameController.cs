@@ -30,6 +30,8 @@ public class FruitNinjaGameController : MonoBehaviour
 
     [Header("Blade Settings")]
     public float sliceRadius = 3.2f;
+    [Tooltip("Local offset from the hand bone used to approximate the fingertip when no rigged fingertip bone is found. Tweak this in Play mode until the blade sits on the visible finger.")]
+    public Vector3 fingerTipLocalOffset = new Vector3(0f, 0.15f, 0.35f);
 
     [Header("Spawn Settings")]
     public float minSpawnDelay = 0.9f;
@@ -235,17 +237,55 @@ public class FruitNinjaGameController : MonoBehaviour
         Debug.LogWarning("[FruitNinja] Could not find any hand reference!");
     }
 
-    // MediaPipe landmark 8 is the index fingertip; use it so the blade trail hugs the fingertip
+    // MediaPipe's raw landmark spheres (handTracking.handPoints) live in a coordinate space
+    // disconnected from the rendered hand mesh, so the trail must anchor to the hand bone instead.
     private void FindFingerTipReference()
     {
-        if (handTracking != null && handTracking.handPoints != null && handTracking.handPoints.Length > 8 && handTracking.handPoints[8] != null)
+        if (handTransform == null) return;
+
+        Transform riggedTip = FindRiggedFingerTipBone();
+        if (riggedTip != null)
         {
-            fingerTipTransform = handTracking.handPoints[8].transform;
+            fingerTipTransform = riggedTip;
+            return;
         }
+
+        if (fingerTipTransform == null || fingerTipTransform.parent != handTransform)
+        {
+            Transform existingAnchor = handTransform.Find("BladeTipAnchor");
+            if (existingAnchor == null)
+            {
+                GameObject anchor = new GameObject("BladeTipAnchor");
+                anchor.transform.SetParent(handTransform, false);
+                existingAnchor = anchor.transform;
+            }
+            fingerTipTransform = existingAnchor;
+        }
+
+        fingerTipTransform.localPosition = fingerTipLocalOffset;
     }
 
-    // MediaPipe fingertip landmarks: 4=thumb, 8=index, 12=middle, 16=ring, 20=pinky
-    private static readonly int[] FingertipLandmarkIndices = { 4, 8, 12, 16, 20 };
+    // Heuristic search for a rigged index-fingertip bone inside the visible hand model
+    private Transform FindRiggedFingerTipBone()
+    {
+        Transform bestMatch = null;
+        int bestScore = -1;
+
+        foreach (Transform child in handTransform.GetComponentsInChildren<Transform>())
+        {
+            string n = child.name.ToLowerInvariant();
+            if (!n.Contains("index")) continue;
+
+            int score = (n.Contains("tip") || n.Contains("distal") || n.Contains("3")) ? 2 : 1;
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestMatch = child;
+            }
+        }
+
+        return bestMatch;
+    }
 
     private List<Vector3> GetHandSlicePoints()
     {
@@ -258,14 +298,11 @@ public class FruitNinjaGameController : MonoBehaviour
             points.Add(handTransform.position);
         }
 
-        // Fingertip landmarks add finer per-finger hits when they share the hand's coordinate space.
-        if (handTracking != null && handTracking.handPoints != null)
+        // Blade-tip anchor shares the hand's coordinate space (unlike the raw landmark spheres),
+        // so it doubles as a finer, fingertip-accurate hit point.
+        if (fingerTipTransform != null)
         {
-            foreach (int idx in FingertipLandmarkIndices)
-            {
-                if (idx < handTracking.handPoints.Length && handTracking.handPoints[idx] != null)
-                    points.Add(handTracking.handPoints[idx].transform.position);
-            }
+            points.Add(fingerTipTransform.position);
         }
 
         return points;

@@ -1,8 +1,8 @@
-# MediaPipe Unity Hand Tracking
+# MediaPipe Unity Fruit Ninja
 
-Webカメラで検出した手の動きをUnity上の3D空間へ反映し、ジェスチャーで箱を掴んで投げられる物流シミュレーションを開発しました。
+Webカメラで検出した手の動きをUnity上の3D空間へ反映し、指先の軌跡（ブレード）でフルーツを切るFruit Ninja風のアクションゲームを開発しました。
 
-Pythonで手のランドマーク検出とジェスチャー判定を行い、JSON形式のUDP通信でUnityへ送信します。Unity側では受信したデータを3Dハンド、キャラクター操作、箱の掴み・投擲処理へ利用します。
+Pythonで手のランドマーク検出を行い、JSON形式のUDP通信でUnityへ送信します。Unity側では受信したランドマークを3Dハンドへ反映し、人差し指の先端（フィンガーチップ）にブレードの軌跡を表示して、降ってくるフルーツを切る当たり判定・スコア・コンボ処理に利用します。
 
 ## Demo
 
@@ -14,25 +14,25 @@ Pythonで手のランドマーク検出とジェスチャー判定を行い、JS
 
 本作品は、特別なモーションコントローラーを使わず、市販のWebカメラ1台で手の動きを入力にするリアルタイムインタラクションシステムです。
 
-物流倉庫を題材にしたUnity空間で、検出した手の動きを3Dハンドへ反映し、ジェスチャーまたはキーボード・マウスで箱を掴んで投げる操作を実現しました。
+Unity空間に降ってくるスイカ・リンゴ・オレンジ・バナナ・パイナップルなどのフルーツと爆弾を、検出した手（特に人差し指の先端）の軌跡で切ることでスコアを獲得するアクションゲームです。
 
 本作品で扱っている主な技術要素は以下です。
 
 - MediaPipe Handsによる手の21ランドマーク検出
-- 手のランドマークを利用したジェスチャー判定
+- 人差し指の先端（フィンガーチップ）を基準にしたブレード（TrailRenderer）の描画
 - PythonからUnityへのUDP/JSON通信
-- Unity上での3Dハンド制御
-- Rigidbody・Colliderを利用した箱との物理インタラクション
+- Unity上での3Dハンド制御と当たり判定によるフルーツのスライス処理
+- Rigidbody・物理演算を利用したフルーツの放物線挙動と切断エフェクト
 
 ## 背景と課題
 
-物流現場では、作業用手袋の着用や荷物によって、端末やコントローラーを操作しづらい場面があります。そこで、カメラを使った非接触操作を物流作業のシミュレーションに応用できないかと考えました。
+コントローラーやタッチ操作を使わず、カメラの前で手を振るだけで直感的に遊べるアクションゲームを作れないかと考えました。
 
 開発時には、次の課題がありました。
 
 - カメラ映像から得た手の動きをUnityへリアルタイムに渡す必要がある
 - MediaPipeのランドマークにはカメラや照明による揺れがある
-- スクリプトで直接座標を変更すると、手と箱の物理的な接触を扱いにくい
+- ブレードの軌跡を手のどの部位（手のひら／指先）に追従させるかで、切っている感覚の自然さが大きく変わる
 - 3Dシーンの座標とカメラから得た座標を対応付ける必要がある
 
 ## 課題への解決方法
@@ -45,9 +45,13 @@ Pythonで手のランドマーク検出とジェスチャー判定を行い、JS
 
 操作ではデータの完全性よりも最新フレームの到着を優先したいため、TCPやHTTPではなくUDPを使用しました。検出結果はJSONにまとめ、ポート5052へ送信します。
 
+### 指先を基準にしたブレード表示
+
+ブレードの`TrailRenderer`は、MediaPipeのランドマーク8番（人差し指の先端）に追従させています。手のひらやbone（HandCon.bone）に追従させると軌跡が実際の指の動きとずれるため、`FruitNinjaGameController.FindFingerTipReference()`で指先のTransformを優先して取得し、取得できない場合のみ既存のhandTransform（bone等）へフォールバックする実装にしました。
+
 ### 物理演算との統合
 
-手の中心オブジェクトに`isKinematic = true`のRigidbodyとSphereColliderを動的に追加しました。これにより、手を物理空間上のオブジェクトとして扱い、箱との接触を実現しています。
+フルーツは`Rigidbody`を付与して放物線状に打ち上げ、手のランドマーク（指先を含む全21点）との距離判定でスライスを検出します。前フレームとの位置を線分として扱うことで、高速に振った手でも取りこぼしにくくしています。
 
 ### 座標とノイズへの対応
 
@@ -61,31 +65,20 @@ flowchart LR
     B --> C[MediaPipe Hands]
     C --> D[21点ランドマーク]
 
-    D --> E[GestureTracker]
-    E --> F[ジェスチャー判定]
-    E --> G[移動・ジャンプ・攻撃コマンド]
+    D --> H[JSONパケット]
 
-    F --> H[JSONパケット]
-    G --> H
-    D --> H
+    H -->|UDP 5052| I[HandTracking / GestureUdpReceiver]
+    I --> J[21点ランドマークをUnity座標へ変換]
 
-    H -->|UDP 5052| I[GestureUdpReceiver]
-    I --> J[GesturePacketModels]
+    J --> K[Unity 3Dハンド]
+    J --> L[人差し指の先端 landmark 8]
 
-    J --> K[GestureHandAvatar]
-    J --> L[GestureCharacterMotor]
-    J --> M[PackageGrabber]
-    J --> N[WallChallengeController]
+    L --> M[FruitNinjaGameController.FindFingerTipReference]
+    M --> N[ブレードTrailRenderer]
 
-    K --> O[Unity 3Dハンド]
-    L --> P[キャラクター操作]
-    M --> Q[箱の掴み・投擲]
-    Q --> R[物流シミュレーション]
-    N --> S[ジェスチャーチャレンジ]
-
-    E -. オプション .-> T[LED制御用UDP]
-    T --> U[led_receiver.py]
-    U --> V[Raspberry Pi GPIO LED]
+    K --> O[全21点でのスライス当たり判定]
+    O --> P[フルーツのスライス・スコア・コンボ]
+    O --> Q[爆弾ヒットでゲームオーバー]
 ```
 
 ### システムの流れ
@@ -93,13 +86,12 @@ flowchart LR
 1. Webカメラからフレームを取得
 2. OpenCVで画像を前処理
 3. MediaPipe Handsで手のランドマーク21点を検出
-4. `GestureTracker`で手の状態やスワイプを判定
-5. ランドマーク、ジェスチャー、操作コマンドをJSON化
-6. UDPでUnityのポート5052へ送信
-7. `GestureUdpReceiver`がプレイヤーIDごとの最新パケットを保持
-8. `GestureHandAvatar`などが受信データをUnity上の操作へ反映
+4. ランドマークをJSON化
+5. UDPでUnityのポート5052へ送信
+6. `HandTracking`が最新パケットを受信し、21点を3Dハンドへ反映
+7. `FruitNinjaGameController`が人差し指の先端（landmark 8）にブレードの軌跡を表示し、全ランドマークとフルーツの距離からスライスを判定
 
-Unity側には、JSON通信を扱う`GestureUdpReceiver`系の実装に加えて、既存形式に対応する`UDPReceive` / `HandTracking`系の実装もあります。
+Unity側には、JSON通信を扱う`GestureUdpReceiver`系の実装に加えて、既存形式に対応する`UDPReceive` / `HandTracking` / `HandCon` / `HandCon2`系の実装もあります。
 
 ### ER図（論理モデル）
 
@@ -110,9 +102,7 @@ erDiagram
   PLAYER ||--o{ TRACKING_PACKET : "送信する"
   CAMERA_SOURCE ||--o{ TRACKING_PACKET : "生成する"
   TRACKING_PACKET ||--|{ HAND_LANDMARK : "含む"
-  TRACKING_PACKET ||--|| GESTURE_COMMAND : "含む"
-  GAME_SESSION ||--o{ PACKAGE : "生成する"
-  GAME_SESSION ||--|{ DELIVERY_BIN : "配置する"
+  GAME_SESSION ||--o{ FRUIT : "生成する"
   PLAYER ||--o{ GAME_SESSION : "操作する"
 
   PLAYER {
@@ -125,7 +115,6 @@ erDiagram
     string player_id PK
     string source_name PK
     long timestamp_ms PK
-    string gesture
   }
   HAND_LANDMARK {
     int landmark_index PK
@@ -133,33 +122,21 @@ erDiagram
     float y
     float z
   }
-  GESTURE_COMMAND {
-    float move_x
-    float move_y
-    float move_z
-    boolean jump
-    boolean attack
-    float confidence
-  }
   GAME_SESSION {
     string session_id PK
     int score
+    int combo
     int lives
-    float elapsed_time
+    int fruits_sliced
   }
-  PACKAGE {
-    string package_name PK
-    string state
-    boolean is_holding
-  }
-  DELIVERY_BIN {
-    string bin_name PK
-    string destination
-    string color
+  FRUIT {
+    string fruit_type PK
+    boolean is_bomb
+    boolean is_sliced
   }
 ```
 
-`PACKAGE`と`DELIVERY_BIN`の配送先照合は現在実装しておらず、箱がビンに入ったときにスコアを加算する構成です。
+landmark_index 8（人差し指の先端）がブレードの位置に、全ランドマークがスライスの当たり判定に使われます。爆弾（is_bomb）を切るとゲームオーバーになります。
 
 ## 技術構成
 
@@ -171,7 +148,7 @@ erDiagram
 | 画像処理 | OpenCV | カメラ映像取得、画像変換、デバッグ表示 |
 | 通信 | UDP / JSON | PythonからUnityへのリアルタイムデータ送信 |
 | 3Dエンジン | Unity 6 `6000.3.11f1` | 3D表示、シーン、ゲーム処理 |
-| 物理演算 | Rigidbody / Collider | 手と箱の接触、箱の投擲 |
+| 物理演算 | Rigidbody / Collider | フルーツの放物線挙動、スライス判定 |
 | UI | TextMesh Pro / uGUI | スタート画面、スコア、タイマーなどの表示 |
 | 外部デバイス | Raspberry Pi GPIO | オプションのLED制御 |
 
@@ -179,39 +156,32 @@ Pythonの依存関係は`python/requirements.txt`で管理しています。
 
 ## 主な機能
 
-### ハンドトラッキングとジェスチャー入力
+### ハンドトラッキング
 
 - Webカメラから手を検出
 - 21点のランドマークを取得
-- `open`、`fist`を判定
-- `swipe_left`、`swipe_right`、`swipe_up`を判定
-- 手の位置から移動コマンドを生成
-- 信頼度をJSONパケットに含めて送信
+- 座標の反転・スケール・オフセットを調整して3D空間へ変換
+- 信頼度・座標をJSONパケットに含めて送信
 
 ### Unityでの3D制御
 
-- 3Dハンドへランドマークを反映
-- 手全体の移動を制御
+- 3Dハンドへ21点のランドマークを反映
+- 人差し指の先端（landmark 8）にブレードの軌跡（TrailRenderer）を表示
 - Lerpまたは指数平滑化による動きの補間
-- ジェスチャーによるキャラクター移動、ジャンプ、攻撃
 
-### 物流シミュレーション
+### フルーツスライスゲーム
 
-- 箱の自動生成
-- 手を近づけて箱を掴む
-- 手の移動速度を利用して箱を投げる
-- 東京・ロンドンを表す2つのビンを生成
-- スコアとHUDを表示
-- 無限練習形式で操作を継続
-
-現在の物流ゲームでは、箱がどの配送先に属するかの正誤判定は行わず、ビンへの投入を検出してスコアを加算します。
+- スイカ・リンゴ・オレンジ・バナナ・パイナップル・爆弾をランダムに放物線で打ち上げ
+- 手（特に指先）とフルーツの距離、および前フレームとの軌跡（スイープ判定）でスライスを検出
+- スライスに成功するとスコア加算・コンボ倍率アップ・果肉パーティクルとハーフカットモデルを生成
+- 爆弾を切るとゲームオーバー、Rキーまたはクリックでリスタート
+- スコア・ハイスコア・残りライフ・コンボバナーをHUDに表示
 
 ### その他の機能
 
 - キーボード・マウスによる代替操作
 - Unity起動時のPythonトラッキングプログラム起動
-- ジェスチャーウォールチャレンジ
-- Raspberry Piへの近接状態のUDP送信とLED制御
+- Raspberry Piへの近接状態のUDP送信とLED制御（オプション）
 
 ## 実装・工夫した点
 
@@ -231,29 +201,29 @@ Pythonの依存関係は`python/requirements.txt`で管理しています。
 - 手のランドマークを3Dモデルへ反映
 - 移動、ジャンプ、攻撃のコマンドをUnityのキャラクター制御へ接続
 
-### `Assets/PackageGrabber.cs`
+### `Assets/FruitNinjaGameController.cs`
 
-- 手の中心に物理コンポーネントを動的に付与
-- 掴んでいる間は箱を手へ追従
-- 手の移動速度を投擲方向と力に利用
-- キーボード・マウスを代替入力として実装
+- フルーツと爆弾の生成、放物線の物理挙動
+- 全ランドマーク・手のTransformを使ったスライス判定（直接距離＋前フレームとの線分判定）
+- 人差し指の先端（landmark 8）を優先してブレードの`TrailRenderer`を追従させる`FindFingerTipReference()`
+- スコア・コンボ・ライフ・HUD・ゲームオーバー処理
 
 ### 座標問題への対応
 
-部屋モデルとゲームオブジェクトの座標が離れていたため、固定ワールド座標ではなく、実行時の`handCenter`を基準に箱やビンを配置する方式にしました。
+部屋モデルとゲームオブジェクトの座標が離れていたため、固定ワールド座標ではなく、実行時の手の位置（`handTransform`）を基準にフルーツの落下位置や打ち上げ高さを計算する方式にしました。
 
 ## 担当した実装
 
-- `Assets/LogisticsGameController.cs`
-  - 物流シミュレーションのゲーム管理、ビン生成、スコア、HUD
-- `Assets/PackageGrabber.cs`
-  - 箱の生成、掴み、投擲、代替入力、手のCollider設定
+- `Assets/FruitNinjaGameController.cs`
+  - フルーツスライスゲームのゲーム管理、フルーツ生成、スライス判定、スコア・コンボ・HUD
 - `Assets/HandTracking.cs`
   - JSONパケット処理、座標変換、Lerpによる平滑化
+- `Assets/HandCon.cs` / `Assets/HandCon2.cs` / `Assets/HandController.cs`
+  - 手のボーン回転・位置制御
 - `Assets/UIFlow/RuntimeStartScreen.cs`
   - 起動画面、ゲーム開始処理、Pythonプログラムの起動・終了
 - `python/gesture_sender.py`
-  - 手のランドマーク処理、ジェスチャー判定、UDPパケット生成
+  - 手のランドマーク処理、UDPパケット生成
 
 ## セットアップ
 
@@ -292,25 +262,25 @@ python/run_camera_tracking.bat
 
 ### 操作方法
 
-| 操作 | ジェスチャー | 代替操作 |
+| 操作 | 手の動き | 代替操作 |
 | :--- | :--- | :--- |
-| 掴む | `fist` | Eキー / マウス左クリック |
-| 投げる | `open` | Spaceキー / マウス右クリック |
+| スライス | 人差し指の先端を降ってくるフルーツに当てる | マウスカーソルの移動 |
+| リスタート | - | Rキー / マウスクリック（ゲームオーバー時） |
 
 ## 今後の発展
 
 完成した作品をさらに発展させる場合の候補です。
 
-1. 箱ごとに配送先情報を持たせ、正しいビンだけを加点する
+1. フルーツの種類ごとに得点や演出を差別化する
 2. 認識精度、誤認識率、FPS、通信遅延を計測・表示する
 3. Python依存ライブラリのバージョンを固定し、実行環境を再現しやすくする
 4. 新旧のUDP受信処理を整理する
 5. 音声入力や外部デバイスとの連携を追加する
 6. VR / AR環境へ対応する
-7. 物流作業の訓練結果やスコアを記録できるようにする
+7. スコアランキングやプレイ履歴を記録できるようにする
 
 ## まとめ
 
-本作品では、MediaPipeによる手の検出、Pythonでのジェスチャー判定、UDP通信、Unityの3D・物理演算を組み合わせ、Webカメラだけで操作できる物流シミュレーションを実装しました。
+本作品では、MediaPipeによる手の検出、UDP通信、Unityの3D・物理演算を組み合わせ、Webカメラだけで操作できるFruit Ninja風のアクションゲームを実装しました。
 
-画像認識の結果をリアルタイムアプリケーションの入力へ変換し、ノイズや座標系、物理演算の問題を解決しながら、実際に操作できる形まで統合した点が本作品の中心的な成果です。
+画像認識の結果をリアルタイムアプリケーションの入力へ変換し、ノイズや座標系、指先の軌跡の追従、物理演算の問題を解決しながら、実際に操作できる形まで統合した点が本作品の中心的な成果です。

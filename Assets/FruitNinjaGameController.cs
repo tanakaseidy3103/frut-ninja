@@ -244,40 +244,28 @@ public class FruitNinjaGameController : MonoBehaviour
         }
     }
 
+    // MediaPipe fingertip landmarks: 4=thumb, 8=index, 12=middle, 16=ring, 20=pinky
+    private static readonly int[] FingertipLandmarkIndices = { 4, 8, 12, 16, 20 };
+
     private List<Vector3> GetHandSlicePoints()
     {
         List<Vector3> points = new List<Vector3>();
 
-        // Add the main hand pivot
-        if (handTransform != null)
-        {
-            points.Add(handTransform.position);
-            // Also add all child bone positions for better finger coverage
-            Transform[] children = handTransform.GetComponentsInChildren<Transform>();
-            foreach (Transform child in children)
-            {
-                if (child != null && child != handTransform)
-                    points.Add(child.position);
-            }
-        }
-
-        // Add all 21 MediaPipe hand landmark points
+        // Slice only with the fingertips so hit detection matches what the blade trail shows.
+        // A fixed, stable point count/order also keeps the previous-frame sweep check aligned.
         if (handTracking != null && handTracking.handPoints != null)
         {
-            for (int i = 0; i < handTracking.handPoints.Length; i++)
+            foreach (int idx in FingertipLandmarkIndices)
             {
-                if (handTracking.handPoints[i] != null)
-                    points.Add(handTracking.handPoints[i].transform.position);
+                if (idx < handTracking.handPoints.Length && handTracking.handPoints[idx] != null)
+                    points.Add(handTracking.handPoints[idx].transform.position);
             }
         }
 
-        // Also try HandController's lists
-        HandController handCtrl = FindFirstObjectByType<HandController>();
-        if (handCtrl != null)
+        // Fallback when landmark points are unavailable
+        if (points.Count == 0 && handTransform != null)
         {
-            foreach (Transform t in handCtrl.handList) { if (t != null) points.Add(t.position); }
-            foreach (Transform t in handCtrl.armatureList) { if (t != null) points.Add(t.position); }
-            foreach (GameObject g in handCtrl.points) { if (g != null) points.Add(g.transform.position); }
+            points.Add(handTransform.position);
         }
 
         return points;

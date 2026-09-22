@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using TMPro;
@@ -15,12 +16,15 @@ public class RuntimeStartScreen : MonoBehaviour
 
     private readonly List<Behaviour> pausedBehaviours = new List<Behaviour>();
     private Canvas canvas;
+    private Canvas waitingCanvas;
+    private TMP_Text waitingLabel;
     private TMP_FontAsset japaneseFontAsset;
     private System.Diagnostics.Process cameraProcess;
     private float previousTimeScale = 1f;
     private bool launchCameraOnStart = true;
     private string pythonExecutable = "python";
     private string cameraIndex = "0";
+    private const float CameraConnectTimeoutSeconds = 25f;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void CreateBootstrap()
@@ -257,7 +261,6 @@ public class RuntimeStartScreen : MonoBehaviour
     {
         gameStarted = true;
         LaunchCameraSender();
-        Time.timeScale = previousTimeScale <= 0f ? 1f : previousTimeScale;
 
         bool hasLegacyUdpReceiver = HasPausedBehaviour("UDPReceive");
 
@@ -282,6 +285,44 @@ public class RuntimeStartScreen : MonoBehaviour
             canvas = null;
         }
 
+        // Keep Time.timeScale at 0 so fruits don't spawn/fall while the camera is still connecting.
+        BuildWaitingScreen();
+        StartCoroutine(WaitForCameraThenBeginGame());
+    }
+
+    private IEnumerator WaitForCameraThenBeginGame()
+    {
+        UDPReceive legacyReceiver = FindFirstObjectByType<UDPReceive>();
+        GestureUdpReceiver gestureReceiver = FindFirstObjectByType<GestureUdpReceiver>();
+
+        float elapsed = 0f;
+        while (elapsed < CameraConnectTimeoutSeconds)
+        {
+            bool legacyReady = legacyReceiver != null && !string.IsNullOrEmpty(legacyReceiver.data);
+            bool gestureReady = gestureReceiver != null && gestureReceiver.ActivePlayerCount > 0;
+
+            if (legacyReady || gestureReady)
+            {
+                break;
+            }
+
+            elapsed += Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        FinishStartingGame();
+    }
+
+    private void FinishStartingGame()
+    {
+        Time.timeScale = previousTimeScale <= 0f ? 1f : previousTimeScale;
+
+        if (waitingCanvas != null)
+        {
+            Destroy(waitingCanvas.gameObject);
+            waitingCanvas = null;
+        }
+
         if (FindFirstObjectByType<FruitNinjaGameController>() == null)
         {
             GameObject ninjaObj = new GameObject("FruitNinjaSystem");
@@ -289,6 +330,41 @@ public class RuntimeStartScreen : MonoBehaviour
         }
 
         GameStarted?.Invoke();
+    }
+
+    private void BuildWaitingScreen()
+    {
+        if (waitingCanvas != null)
+        {
+            Destroy(waitingCanvas.gameObject);
+        }
+
+        waitingCanvas = CreateCanvas();
+
+        Image background = CreatePanel(waitingCanvas.transform, "Waiting Background", new Color(0.04f, 0.05f, 0.07f, 0.96f));
+        Stretch(background.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+
+        RectTransform panel = CreatePanel(waitingCanvas.transform, "Waiting Panel", new Color(0.09f, 0.11f, 0.14f, 0.92f)).rectTransform;
+        panel.anchorMin = new Vector2(0.5f, 0.5f);
+        panel.anchorMax = new Vector2(0.5f, 0.5f);
+        panel.pivot = new Vector2(0.5f, 0.5f);
+        panel.sizeDelta = new Vector2(620f, 220f);
+        panel.anchoredPosition = Vector2.zero;
+
+        VerticalLayoutGroup layout = panel.gameObject.AddComponent<VerticalLayoutGroup>();
+        layout.padding = new RectOffset(44, 44, 30, 30);
+        layout.spacing = 14f;
+        layout.childAlignment = TextAnchor.MiddleCenter;
+        layout.childControlWidth = true;
+        layout.childControlHeight = false;
+
+        TMP_Text title = CreateText(panel, "CONNECTING CAMERA...", 32, FontStyles.Bold, TextAlignmentOptions.Center);
+        title.color = new Color(0.2f, 1f, 0.9f);
+        AddLayout(title.gameObject, 540f, 45f);
+
+        waitingLabel = CreateText(panel, "Please wait while the hand tracker starts up", 20, FontStyles.Normal, TextAlignmentOptions.Center);
+        waitingLabel.color = new Color(0.85f, 0.9f, 0.95f);
+        AddLayout(waitingLabel.gameObject, 540f, 60f);
     }
 
     private bool HasPausedBehaviour(string typeName)

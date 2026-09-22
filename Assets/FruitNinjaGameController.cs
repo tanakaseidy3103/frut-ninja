@@ -251,8 +251,14 @@ public class FruitNinjaGameController : MonoBehaviour
     {
         List<Vector3> points = new List<Vector3>();
 
-        // Slice only with the fingertips so hit detection matches what the blade trail shows.
-        // A fixed, stable point count/order also keeps the previous-frame sweep check aligned.
+        // handTransform (HandCon/HandCon2 bone) is the transform that actually drives the
+        // visible hand model, so it must always be included or the blade never lines up with fruit.
+        if (handTransform != null)
+        {
+            points.Add(handTransform.position);
+        }
+
+        // Fingertip landmarks add finer per-finger hits when they share the hand's coordinate space.
         if (handTracking != null && handTracking.handPoints != null)
         {
             foreach (int idx in FingertipLandmarkIndices)
@@ -260,12 +266,6 @@ public class FruitNinjaGameController : MonoBehaviour
                 if (idx < handTracking.handPoints.Length && handTracking.handPoints[idx] != null)
                     points.Add(handTracking.handPoints[idx].transform.position);
             }
-        }
-
-        // Fallback when landmark points are unavailable
-        if (points.Count == 0 && handTransform != null)
-        {
-            points.Add(handTransform.position);
         }
 
         return points;

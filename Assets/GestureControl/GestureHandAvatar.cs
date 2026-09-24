@@ -121,7 +121,7 @@ public class GestureHandAvatar : MonoBehaviour
 
         if (receiver == null)
         {
-            receiver = FindObjectOfType<GestureUdpReceiver>();
+            receiver = FindFirstObjectByType<GestureUdpReceiver>();
         }
 
         if (pointsRoot == null)

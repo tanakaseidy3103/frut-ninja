@@ -10,7 +10,8 @@ public class HandCon : MonoBehaviour
     public GameObject bone ;
     public int factorX , factorY ;
     public float offsetX , offsetY ;
-    public float smoothSpeed = 26f;
+    public float smoothSpeed = 20f;
+    public float handMoveScale = 3.4f;
     private Vector3 startPos ;
     private Vector3 HandPos ;
 
@@ -64,7 +65,7 @@ public class HandCon : MonoBehaviour
         Quaternion targetRot = Quaternion.Euler(new Vector3(RealAngleYZ, 180, RealAngleXY));
         bone.transform.localRotation = Quaternion.Slerp(bone.transform.localRotation, targetRot, t);
 
-        Vector3 basePos = HandPos + sp1.transform.position - startPos;
+        Vector3 basePos = HandPos + (sp1.transform.position - startPos) * handMoveScale;
         Vector3 targetPos = new Vector3(
             basePos.x,
             basePos.y,

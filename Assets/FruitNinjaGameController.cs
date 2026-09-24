@@ -29,11 +29,17 @@ public class FruitNinjaGameController : MonoBehaviour
     public bool isGameOver = false;
 
     [Header("Blade Settings")]
-    public float sliceRadius = 3.2f;
+    public float sliceRadius = 2.2f;
+    public float fastSlashAssist = 0.45f;
     [Tooltip("World-space direction (from the wrist bone) the blade anchor is pushed toward, in case no rigged fingertip bone is found. Tweak in Play mode until it sits on the finger.")]
     public Vector3 fingerTipDirection = new Vector3(0f, 0.3f, 1f);
     [Tooltip("World-space distance (in Unity units) the blade anchor is pushed from the wrist bone along fingerTipDirection.")]
     public float fingerTipDistance = 0.6f;
+
+    [Header("Slash Visual")]
+    public float slashVisualMinDistance = 0.01f;
+    public float slashVisualDuration = 0.36f;
+    public float slashVisualWidth = 0.8f;
 
     [Header("Spawn Settings")]
     public float minSpawnDelay = 0.9f;
@@ -57,6 +63,8 @@ public class FruitNinjaGameController : MonoBehaviour
 
     private readonly List<GameObject> activeFruits = new List<GameObject>();
     private List<Vector3> previousSlicePoints = new List<Vector3>();
+    private Vector3 lastSlashDirection = Vector3.right;
+    private bool bombHasSpawned;
 
     void Awake()
     {
@@ -69,7 +77,7 @@ public class FruitNinjaGameController : MonoBehaviour
         currentLives = maxLives;
         if (minUpForce < 14f) minUpForce = 15.0f;
         if (maxUpForce < 18f) maxUpForce = 21.0f;
-        if (sliceRadius < 3.2f) sliceRadius = 3.6f;
+        if (sliceRadius < 0.5f) sliceRadius = 2.2f;
 
         FindHandReferences();
         SetupBladeTrail();
@@ -101,12 +109,11 @@ public class FruitNinjaGameController : MonoBehaviour
         // hierarchy can shrink a localPosition offset, so this is driven in world space instead.
         if (fingerTipIsSyntheticAnchor && fingerTipTransform != null)
         {
-            fingerTipTransform.position = handTransform.position + handTransform.TransformDirection(fingerTipDirection.normalized) * fingerTipDistance;
+            UpdateSyntheticFingerTip();
         }
 
         // Check slicing collisions against all hand points
         List<Vector3> slicePoints = GetHandSlicePoints();
-        float sqrSliceRadius = sliceRadius * sliceRadius;
 
         for (int i = activeFruits.Count - 1; i >= 0; i--)
         {
@@ -132,9 +139,17 @@ public class FruitNinjaGameController : MonoBehaviour
             for (int pIdx = 0; pIdx < slicePoints.Count; pIdx++)
             {
                 Vector3 currentP = slicePoints[pIdx];
+                float movementSpeed = 0f;
+                if (previousSlicePoints != null && pIdx < previousSlicePoints.Count)
+                {
+                    movementSpeed = Vector3.Distance(previousSlicePoints[pIdx], currentP);
+                }
+
+                float effectiveSliceRadius = sliceRadius + Mathf.Clamp(movementSpeed * fastSlashAssist, 0f, 1.2f);
+                float effectiveSliceRadiusSqr = effectiveSliceRadius * effectiveSliceRadius;
 
                 // Direct proximity check
-                if ((currentP - fruitPos).sqrMagnitude < sqrSliceRadius)
+                if ((currentP - fruitPos).sqrMagnitude < effectiveSliceRadiusSqr)
                 {
                     hit = true;
                     break;
@@ -144,7 +159,7 @@ public class FruitNinjaGameController : MonoBehaviour
                 if (previousSlicePoints != null && pIdx < previousSlicePoints.Count)
                 {
                     Vector3 prevP = previousSlicePoints[pIdx];
-                    if (SqrDistancePointToSegment(prevP, currentP, fruitPos) < sqrSliceRadius)
+                    if (SqrDistancePointToSegment(prevP, currentP, fruitPos) < effectiveSliceRadiusSqr)
                     {
                         hit = true;
                         break;
@@ -158,8 +173,66 @@ public class FruitNinjaGameController : MonoBehaviour
             }
         }
 
+        if (previousSlicePoints != null && previousSlicePoints.Count > 1 && slicePoints.Count > 1)
+        {
+            Vector3 previousTip = previousSlicePoints[1];
+            Vector3 currentTip = slicePoints[1];
+            if ((currentTip - previousTip).sqrMagnitude >= slashVisualMinDistance * slashVisualMinDistance)
+            {
+                UpdateLastSlashDirection(previousTip, currentTip);
+            }
+        }
+
         previousSlicePoints = new List<Vector3>(slicePoints);
         UpdateHUD();
+    }
+
+    private void CreateSlashSegment(Vector3 start, Vector3 end)
+    {
+        UpdateLastSlashDirection(start, end);
+
+        GameObject slashObject = new GameObject("SlashSegment");
+        LineRenderer line = slashObject.AddComponent<LineRenderer>();
+        line.positionCount = 2;
+        line.SetPosition(0, start);
+        line.SetPosition(1, end);
+        line.startWidth = slashVisualWidth;
+        line.endWidth = slashVisualWidth * 0.55f;
+        line.numCapVertices = 4;
+        line.material = new Material(Shader.Find("Sprites/Default"));
+        line.startColor = new Color(0f, 0.95f, 1f, 0.95f);
+        line.endColor = new Color(1f, 0.2f, 0.85f, 0.2f);
+        StartCoroutine(FadeSlashSegment(slashObject, line));
+    }
+
+    private void UpdateLastSlashDirection(Vector3 start, Vector3 end)
+    {
+        Vector3 slashVector = end - start;
+        if (slashVector.sqrMagnitude > 0.0001f)
+        {
+            lastSlashDirection = slashVector.normalized;
+        }
+    }
+
+    private IEnumerator FadeSlashSegment(GameObject slashObject, LineRenderer line)
+    {
+        float elapsed = 0f;
+        Color startColor = line.startColor;
+        Color endColor = line.endColor;
+
+        while (elapsed < slashVisualDuration && slashObject != null)
+        {
+            elapsed += Time.deltaTime;
+            float alpha = 1f - Mathf.Clamp01(elapsed / slashVisualDuration);
+            line.startColor = new Color(startColor.r, startColor.g, startColor.b, startColor.a * alpha);
+            line.endColor = new Color(endColor.r, endColor.g, endColor.b, endColor.a * alpha);
+            yield return null;
+        }
+
+        if (slashObject != null)
+        {
+            Destroy(slashObject);
+        }
     }
 
     private float SqrDistancePointToSegment(Vector3 a, Vector3 b, Vector3 p)
@@ -274,7 +347,27 @@ public class FruitNinjaGameController : MonoBehaviour
         }
 
         fingerTipIsSyntheticAnchor = true;
-        fingerTipTransform.position = handTransform.position + handTransform.TransformDirection(fingerTipDirection.normalized) * fingerTipDistance;
+        UpdateSyntheticFingerTip();
+    }
+
+    private void UpdateSyntheticFingerTip()
+    {
+        Vector3 direction = fingerTipDirection.normalized;
+
+        // Use the wrist-to-index-tip direction when the rig has no named fingertip bone.
+        // The raw landmark space is not used as a hitbox, only as directional input.
+        if (handTracking != null && handTracking.handPoints != null && handTracking.handPoints.Length > 8
+            && handTracking.handPoints[0] != null && handTracking.handPoints[8] != null)
+        {
+            Vector3 landmarkDirection = handTracking.handPoints[8].transform.position
+                - handTracking.handPoints[0].transform.position;
+            if (landmarkDirection.sqrMagnitude > 0.0001f)
+            {
+                direction = landmarkDirection.normalized;
+            }
+        }
+
+        fingerTipTransform.position = handTransform.position + direction * fingerTipDistance;
     }
 
     // Heuristic search for a rigged index-fingertip bone inside the visible hand model
@@ -303,15 +396,12 @@ public class FruitNinjaGameController : MonoBehaviour
     {
         List<Vector3> points = new List<Vector3>();
 
-        // handTransform (HandCon/HandCon2 bone) is the transform that actually drives the
-        // visible hand model, so it must always be included or the blade never lines up with fruit.
+        // Use the palm/wrist and fingertip together for a forgiving hand-controlled slice.
         if (handTransform != null)
         {
             points.Add(handTransform.position);
         }
 
-        // Blade-tip anchor shares the hand's coordinate space (unlike the raw landmark spheres),
-        // so it doubles as a finer, fingertip-accurate hit point.
         if (fingerTipTransform != null)
         {
             points.Add(fingerTipTransform.position);
@@ -332,9 +422,10 @@ public class FruitNinjaGameController : MonoBehaviour
             bladeTrail = trailAnchor.gameObject.AddComponent<TrailRenderer>();
         }
 
-        bladeTrail.time = 0.35f;
-        bladeTrail.startWidth = 0.85f;
-        bladeTrail.endWidth = 0.05f;
+        bladeTrail.time = 0.22f;
+        bladeTrail.minVertexDistance = 0.04f;
+        bladeTrail.startWidth = 0.18f;
+        bladeTrail.endWidth = 0.015f;
 
         Material trailMat = new Material(Shader.Find("Sprites/Default"));
         trailMat.color = new Color(0f, 0.95f, 1f, 0.95f);
@@ -346,6 +437,7 @@ public class FruitNinjaGameController : MonoBehaviour
             new GradientAlphaKey[] { new GradientAlphaKey(0.95f, 0f), new GradientAlphaKey(0f, 1f) }
         );
         bladeTrail.colorGradient = gradient;
+        bladeTrail.enabled = false;
     }
 
     private void SetupAudio()
@@ -419,20 +511,20 @@ public class FruitNinjaGameController : MonoBehaviour
         if (zone == 0)
         {
             // Left Zone
-            startX = Random.Range(-3.5f, -1.5f);
-            sideForce = Random.Range(0.8f, 2.2f); // Arc towards center-right
+            startX = Random.Range(-5.2f, -2.2f);
+            sideForce = Random.Range(1.2f, 2.8f); // Arc towards center-right
         }
         else if (zone == 1)
         {
             // Center Zone (over the coffee table)
-            startX = Random.Range(-1.2f, 1.4f);
-            sideForce = Random.Range(-0.8f, 0.8f);
+            startX = Random.Range(-1.5f, 1.6f);
+            sideForce = Random.Range(-1.1f, 1.1f);
         }
         else
         {
             // Right Zone
-            startX = Random.Range(1.6f, 4.2f);
-            sideForce = Random.Range(-2.2f, -0.8f); // Arc towards center-left
+            startX = Random.Range(2.2f, 5.2f);
+            sideForce = Random.Range(-2.8f, -1.2f); // Arc towards center-left
         }
 
         float handY = handTransform != null ? handTransform.position.y : 5.0f;
@@ -446,9 +538,11 @@ public class FruitNinjaGameController : MonoBehaviour
         Vector3 spawnPos = new Vector3(startX, startY, startZ);
 
         FruitType type = (FruitType)Random.Range(0, 5);
-        if (Random.value < 0.16f)
+        bool guaranteedDemoBomb = fruitsSliced >= 3 && !bombHasSpawned;
+        if (guaranteedDemoBomb || Random.value < 0.22f)
         {
             type = FruitType.Bomb;
+            bombHasSpawned = true;
         }
 
         GameObject fruitObj = CreateFruitMesh(type);
@@ -491,6 +585,7 @@ public class FruitNinjaGameController : MonoBehaviour
                 obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 obj.transform.localScale = Vector3.one * 2.8f; // Huge Apple!
                 SetMaterial(obj, new Color(0.95f, 0.12f, 0.18f), new Color(0.95f, 0.12f, 0.18f) * 0.7f);
+                AddAppleDetails(obj);
                 break;
 
             case FruitType.Orange:
@@ -503,19 +598,22 @@ public class FruitNinjaGameController : MonoBehaviour
                 obj = GameObject.CreatePrimitive(PrimitiveType.Capsule);
                 obj.transform.localScale = new Vector3(1.2f, 3.6f, 1.2f); // Huge Banana!
                 SetMaterial(obj, new Color(1f, 0.92f, 0.1f), new Color(1f, 0.92f, 0.1f) * 0.7f);
+                AddBananaDetails(obj);
                 break;
 
             case FruitType.Pineapple:
                 obj = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
                 obj.transform.localScale = new Vector3(2.3f, 3.2f, 2.3f); // Huge Golden Pineapple!
                 SetMaterial(obj, new Color(1f, 0.82f, 0.0f), new Color(1f, 0.82f, 0.0f) * 2.0f);
+                AddPineappleDetails(obj);
                 break;
 
             case FruitType.Bomb:
             default:
                 obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                obj.transform.localScale = Vector3.one * 2.6f; // Huge Bomb!
-                SetMaterial(obj, new Color(0.12f, 0.12f, 0.15f), new Color(1f, 0.1f, 0.1f) * 2.0f);
+                obj.transform.localScale = Vector3.one * 3.5f;
+                SetMaterial(obj, new Color(0.003f, 0.003f, 0.005f), new Color(0.35f, 0.01f, 0.005f));
+                AddBombDetails(obj);
                 break;
         }
 
@@ -534,8 +632,75 @@ public class FruitNinjaGameController : MonoBehaviour
             mat.color = color;
             mat.EnableKeyword("_EMISSION");
             mat.SetColor("_EmissionColor", emission);
+            mat.SetFloat("_Glossiness", 0.68f);
             r.material = mat;
         }
+    }
+
+    private void AddAppleDetails(GameObject fruit)
+    {
+        GameObject stem = CreateFruitDetail(fruit, PrimitiveType.Cylinder, new Vector3(0f, 0.58f, 0f), new Vector3(0.12f, 0.28f, 0.12f), new Color(0.22f, 0.08f, 0.02f));
+        stem.transform.localRotation = Quaternion.Euler(0f, 0f, -8f);
+        GameObject leaf = CreateFruitDetail(fruit, PrimitiveType.Sphere, new Vector3(0.2f, 0.66f, 0f), new Vector3(0.28f, 0.06f, 0.14f), new Color(0.12f, 0.55f, 0.08f));
+        leaf.transform.localRotation = Quaternion.Euler(0f, 0f, -25f);
+        CreateFruitDetail(fruit, PrimitiveType.Sphere, new Vector3(0f, 0.53f, 0f), new Vector3(0.2f, 0.05f, 0.2f), new Color(0.18f, 0.03f, 0.02f));
+    }
+
+    private void AddBananaDetails(GameObject fruit)
+    {
+        GameObject top = CreateFruitDetail(fruit, PrimitiveType.Cylinder, new Vector3(0f, 1.03f, 0f), new Vector3(0.18f, 0.08f, 0.18f), new Color(0.28f, 0.12f, 0.03f));
+        top.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+        GameObject bottom = CreateFruitDetail(fruit, PrimitiveType.Cylinder, new Vector3(0f, -1.03f, 0f), new Vector3(0.16f, 0.07f, 0.16f), new Color(0.3f, 0.14f, 0.03f));
+        bottom.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+    }
+
+    private void AddPineappleDetails(GameObject fruit)
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            float angle = i * 72f * Mathf.Deg2Rad;
+            Vector3 position = new Vector3(Mathf.Cos(angle) * 0.22f, 1.08f + (i % 2) * 0.08f, Mathf.Sin(angle) * 0.22f);
+            GameObject leaf = CreateFruitDetail(fruit, PrimitiveType.Capsule, position, new Vector3(0.12f, 0.42f, 0.12f), new Color(0.08f, 0.5f, 0.12f));
+            leaf.transform.localRotation = Quaternion.Euler(Mathf.Sin(angle) * 22f, i * 72f, Mathf.Cos(angle) * 22f);
+        }
+    }
+
+    private void AddBombDetails(GameObject fruit)
+    {
+        GameObject fuse = CreateFruitDetail(fruit, PrimitiveType.Cylinder, new Vector3(0f, 0.62f, 0f), new Vector3(0.1f, 0.38f, 0.1f), new Color(0.25f, 0.16f, 0.08f));
+        fuse.transform.localRotation = Quaternion.Euler(0f, 0f, -18f);
+        CreateFruitDetail(fruit, PrimitiveType.Sphere, new Vector3(0.08f, 0.92f, 0f), new Vector3(0.18f, 0.18f, 0.18f), Color.red);
+
+        GameObject ringObject = new GameObject("BombWarningRing");
+        ringObject.transform.SetParent(fruit.transform, false);
+        LineRenderer ring = ringObject.AddComponent<LineRenderer>();
+        ring.useWorldSpace = false;
+        ring.loop = true;
+        ring.positionCount = 40;
+        ring.startWidth = 0.08f;
+        ring.endWidth = 0.08f;
+        ring.material = new Material(Shader.Find("Sprites/Default"));
+        ring.startColor = Color.red;
+        ring.endColor = Color.red;
+
+        for (int i = 0; i < ring.positionCount; i++)
+        {
+            float angle = i * Mathf.PI * 2f / ring.positionCount;
+            ring.SetPosition(i, new Vector3(Mathf.Cos(angle) * 1.04f, 0f, Mathf.Sin(angle) * 1.04f));
+        }
+    }
+
+    private GameObject CreateFruitDetail(GameObject parent, PrimitiveType primitiveType, Vector3 localPosition, Vector3 localScale, Color color)
+    {
+        GameObject detail = GameObject.CreatePrimitive(primitiveType);
+        detail.name = "FruitDetail";
+        detail.transform.SetParent(parent.transform, false);
+        detail.transform.localPosition = localPosition;
+        detail.transform.localScale = localScale;
+        Collider collider = detail.GetComponent<Collider>();
+        if (collider != null) Destroy(collider);
+        SetMaterial(detail, color, color * 0.15f);
+        return detail;
     }
 
     private void SliceFruit(GameObject fruit, int index)
@@ -546,6 +711,7 @@ public class FruitNinjaGameController : MonoBehaviour
 
         activeFruits.RemoveAt(index);
         Destroy(fruit);
+        CreateFruitCutSlash(pos);
 
         if (type == FruitType.Bomb)
         {
@@ -571,7 +737,7 @@ public class FruitNinjaGameController : MonoBehaviour
             PlaySound(type == FruitType.Pineapple ? "bonus" : "slash");
 
             Color sliceColor = GetFruitSliceColor(type);
-            SpawnSlices(pos, sliceColor);
+            SpawnSlices(pos, type, sliceColor);
             StartCoroutine(SpawnFloatingText(pos, "+" + earned, sliceColor));
 
             if (combo >= 3 && comboBanner != null)
@@ -587,11 +753,19 @@ public class FruitNinjaGameController : MonoBehaviour
         }
     }
 
+    private void CreateFruitCutSlash(Vector3 position)
+    {
+        Vector3 direction = lastSlashDirection.sqrMagnitude > 0.0001f
+            ? lastSlashDirection.normalized
+            : Vector3.right;
+        CreateSlashSegment(position - direction * 4.8f, position + direction * 4.8f);
+    }
+
     private Color GetFruitSliceColor(FruitType type)
     {
         switch (type)
         {
-            case FruitType.Watermelon: return new Color(1f, 0.2f, 0.25f);
+            case FruitType.Watermelon: return new Color(0.12f, 0.78f, 0.25f);
             case FruitType.Apple: return new Color(0.95f, 0.15f, 0.15f);
             case FruitType.Orange: return new Color(1f, 0.58f, 0.1f);
             case FruitType.Banana: return new Color(1f, 0.9f, 0.2f);
@@ -600,19 +774,38 @@ public class FruitNinjaGameController : MonoBehaviour
         }
     }
 
-    private void SpawnSlices(Vector3 pos, Color color)
+    private void SpawnSlices(Vector3 pos, FruitType type, Color color)
     {
-        SpawnHalfSlice(pos, color, Vector3.left * 3.2f + Vector3.up * 1.8f);
-        SpawnHalfSlice(pos, color, Vector3.right * 3.2f + Vector3.up * 1.8f);
+        SpawnHalfSlice(pos, type, color, Vector3.left * 3.2f + Vector3.up * 1.8f);
+        SpawnHalfSlice(pos, type, color, Vector3.right * 3.2f + Vector3.up * 1.8f);
         StartCoroutine(SliceJuiceBurst(pos, color));
     }
 
-    private void SpawnHalfSlice(Vector3 pos, Color color, Vector3 force)
+    private void SpawnHalfSlice(Vector3 pos, FruitType type, Color color, Vector3 force)
     {
-        GameObject half = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        GameObject half;
+        switch (type)
+        {
+            case FruitType.Banana:
+                half = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                half.transform.localScale = new Vector3(0.65f, 1.8f, 0.65f);
+                break;
+            case FruitType.Pineapple:
+                half = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                half.transform.localScale = new Vector3(1.15f, 1.6f, 1.15f);
+                break;
+            case FruitType.Bomb:
+                half = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                half.transform.localScale = Vector3.one * 1.3f;
+                break;
+            default:
+                half = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                half.transform.localScale = Vector3.one * 1.45f;
+                break;
+        }
+
         half.name = "FruitHalf";
         half.transform.position = pos;
-        half.transform.localScale = new Vector3(1.7f, 2.3f, 1.7f); // Big visible halves!
 
         SetMaterial(half, color, color * 0.4f);
 
@@ -654,11 +847,12 @@ public class FruitNinjaGameController : MonoBehaviour
         flash.transform.position = pos;
         Destroy(flash.GetComponent<Collider>());
 
-        SetMaterial(flash, Color.red, Color.red * 3.5f);
+        SetMaterial(flash, new Color(1f, 0.18f, 0.02f), new Color(1f, 0.65f, 0.05f) * 5f);
+        SpawnExplosionSparks(pos);
 
         float t = 0f;
-        Vector3 startScale = Vector3.one * 1.5f;
-        Vector3 endScale = Vector3.one * 4.8f;
+        Vector3 startScale = Vector3.one * 1.2f;
+        Vector3 endScale = Vector3.one * 7.5f;
 
         while (t < 0.25f)
         {
@@ -668,6 +862,24 @@ public class FruitNinjaGameController : MonoBehaviour
         }
 
         Destroy(flash);
+    }
+
+    private void SpawnExplosionSparks(Vector3 position)
+    {
+        for (int i = 0; i < 10; i++)
+        {
+            GameObject spark = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            spark.name = "ExplosionSpark";
+            spark.transform.position = position;
+            spark.transform.localScale = Vector3.one * Random.Range(0.12f, 0.28f);
+            Destroy(spark.GetComponent<Collider>());
+            SetMaterial(spark, new Color(1f, 0.1f, 0.01f), new Color(1f, 0.65f, 0.05f) * 4f);
+
+            Rigidbody body = spark.AddComponent<Rigidbody>();
+            body.useGravity = false;
+            body.linearVelocity = Random.onUnitSphere * Random.Range(4f, 8f);
+            Destroy(spark, 0.65f);
+        }
     }
 
     private IEnumerator SpawnFloatingText(Vector3 worldPos, string text, Color color)
@@ -732,6 +944,7 @@ public class FruitNinjaGameController : MonoBehaviour
         score = 0;
         combo = 0;
         fruitsSliced = 0;
+        bombHasSpawned = false;
         currentLives = maxLives;
         isGameOver = false;
 

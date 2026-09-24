@@ -8,6 +8,39 @@ import cv2
 import mediapipe as mp
 
 
+class AdaptiveLandmarkSmoother:
+    """EMA smoothing that relaxes during fast movement to reduce latency."""
+
+    def __init__(self, base_alpha=0.32, fast_alpha=0.88, speed_scale=7.0):
+        self.base_alpha = base_alpha
+        self.fast_alpha = fast_alpha
+        self.speed_scale = speed_scale
+        self.previous = []
+
+    def update(self, landmarks):
+        if not landmarks:
+            return []
+
+        if len(self.previous) != len(landmarks):
+            self.previous = list(landmarks)
+            return list(landmarks)
+
+        smoothed = []
+        for previous, current in zip(self.previous, landmarks):
+            speed = ((current[0] - previous[0]) ** 2
+                     + (current[1] - previous[1]) ** 2
+                     + (current[2] - previous[2]) ** 2) ** 0.5
+            alpha = min(self.fast_alpha, self.base_alpha + speed * self.speed_scale)
+            point = tuple(
+                previous[axis] + (current[axis] - previous[axis]) * alpha
+                for axis in range(3)
+            )
+            smoothed.append(point)
+
+        self.previous = smoothed
+        return smoothed
+
+
 class GestureTracker:
     def __init__(self, swipe_threshold=0.12, history_size=6):
         self.swipe_threshold = swipe_threshold
@@ -179,6 +212,7 @@ def main():
         cv2.waitKey(1)
 
     tracker = GestureTracker()
+    landmark_smoother = AdaptiveLandmarkSmoother()
     socket_client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     mp_hands = mp.solutions.hands
@@ -187,13 +221,15 @@ def main():
     min_frame_interval = 1.0 / max(10, args.max_fps)
     last_send_time = 0.0
     prev_frame_time = time.time()
+    last_valid_landmarks = []
+    lost_landmark_frames = 0
 
     with mp_hands.Hands(
         static_image_mode=False,
-        model_complexity=0,  # Model 0 is ultra lightweight and fast
+        model_complexity=0,
         max_num_hands=1,
-        min_detection_confidence=0.6,
-        min_tracking_confidence=0.5,
+        min_detection_confidence=0.45,
+        min_tracking_confidence=0.2,
     ) as hands:
         try:
             while True:
@@ -217,11 +253,18 @@ def main():
                 if result.multi_hand_landmarks:
                     hand_landmarks = result.multi_hand_landmarks[0]
                     handedness = result.multi_handedness[0].classification[0].label if result.multi_handedness else "Right"
-                    landmarks = [(lm.x, lm.y, lm.z) for lm in hand_landmarks.landmark]
+                    raw_landmarks = [(lm.x, lm.y, lm.z) for lm in hand_landmarks.landmark]
+                    landmarks = landmark_smoother.update(raw_landmarks)
+                    last_valid_landmarks = landmarks
+                    lost_landmark_frames = 0
                     gesture, command = tracker.classify(landmarks, handedness)
 
                     if args.show:
                         mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+                elif last_valid_landmarks and lost_landmark_frames < 4:
+                    # Keep the last complete hand briefly while MediaPipe reacquires tracking.
+                    landmarks = last_valid_landmarks
+                    lost_landmark_frames += 1
 
                 # Send packet to Unity
                 packet = build_packet(args.player_id, args.camera_name, gesture, command, landmarks)

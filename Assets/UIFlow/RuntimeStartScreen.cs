@@ -19,12 +19,20 @@ public class RuntimeStartScreen : MonoBehaviour
     private Canvas waitingCanvas;
     private TMP_Text waitingLabel;
     private TMP_FontAsset japaneseFontAsset;
+    private Sprite startScreenArt;
     private System.Diagnostics.Process cameraProcess;
     private float previousTimeScale = 1f;
     private bool launchCameraOnStart = true;
     private string pythonExecutable = "python";
     private string cameraIndex = "0";
-    private const float CameraConnectTimeoutSeconds = 25f;
+    private const float CameraConnectTimeoutSeconds = 8f;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStaticState()
+    {
+        instance = null;
+        gameStarted = false;
+    }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void CreateBootstrap()
@@ -108,47 +116,68 @@ public class RuntimeStartScreen : MonoBehaviour
         }
 
         canvas = CreateCanvas();
-        japaneseFontAsset = CreateJapaneseFontAsset();
+        japaneseFontAsset = Resources.Load<TMP_FontAsset>("JapaneseFont");
+        if (japaneseFontAsset == null)
+        {
+            japaneseFontAsset = Resources.Load<TMP_FontAsset>("JapaneseFont SDF");
+        }
+        startScreenArt = LoadStartScreenArt();
+        bool useJapanese = japaneseFontAsset != null;
 
-        Image background = CreatePanel(canvas.transform, "Background", new Color(0.04f, 0.05f, 0.07f, 0.96f));
+        float backgroundAlpha = startScreenArt == null ? 0.96f : 0.55f;
+        Image background = CreatePanel(canvas.transform, "Background", new Color(0.015f, 0.025f, 0.06f, backgroundAlpha));
         Stretch(background.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
-        Image accent = CreatePanel(canvas.transform, "Accent", new Color(0.0f, 0.75f, 0.82f, 0.25f));
+        if (startScreenArt != null)
+        {
+            Image art = CreatePanel(canvas.transform, "Start Screen Art", Color.white);
+            art.sprite = startScreenArt;
+            art.preserveAspect = false;
+            Stretch(art.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        }
+
+        Image accent = CreatePanel(canvas.transform, "Accent", new Color(0.0f, 0.8f, 1f, 0.18f));
         Stretch(accent.rectTransform, new Vector2(0f, 0.55f), Vector2.one, Vector2.zero, Vector2.zero);
 
-        RectTransform panel = CreatePanel(canvas.transform, "Menu Panel", new Color(0.09f, 0.11f, 0.14f, 0.92f)).rectTransform;
+        RectTransform panel = CreatePanel(canvas.transform, "Menu Panel", new Color(0.015f, 0.025f, 0.055f, 0.94f)).rectTransform;
         panel.anchorMin = new Vector2(0.5f, 0.5f);
         panel.anchorMax = new Vector2(0.5f, 0.5f);
         panel.pivot = new Vector2(0.5f, 0.5f);
-        panel.sizeDelta = new Vector2(620f, 430f);
+        panel.sizeDelta = new Vector2(700f, 470f);
         panel.anchoredPosition = Vector2.zero;
 
         VerticalLayoutGroup layout = panel.gameObject.AddComponent<VerticalLayoutGroup>();
-        layout.padding = new RectOffset(44, 44, 38, 38);
-        layout.spacing = 18f;
+        layout.padding = new RectOffset(54, 54, 42, 42);
+        layout.spacing = 20f;
         layout.childAlignment = TextAnchor.MiddleCenter;
         layout.childControlWidth = true;
         layout.childControlHeight = false;
 
-        TMP_Text title = CreateText(panel, "3D HAND FRUIT NINJA", 40, FontStyles.Bold, TextAlignmentOptions.Center);
+        TMP_Text title = CreateText(panel, useJapanese ? "ハンドフルーツニンジャ" : "3D HAND FRUIT NINJA", 48, FontStyles.Bold, TextAlignmentOptions.Center);
         title.color = new Color(1f, 0.85f, 0.1f);
         AddLayout(title.gameObject, 540f, 60f);
 
-        TMP_Text subtitle = CreateText(panel, "Slice Flying Fruits With Your Hand!", 22, FontStyles.Normal, TextAlignmentOptions.Center);
+        TMP_Text subtitle = CreateText(panel, useJapanese ? "手の動きでフルーツを切る" : "SLICE THE MOMENT", 28, FontStyles.Bold, TextAlignmentOptions.Center);
         subtitle.color = new Color(0.2f, 1f, 0.4f);
         AddLayout(subtitle.gameObject, 540f, 35f);
 
-        TMP_Text hint = CreateText(panel, "Swipe fast to slice fruits / Avoid bombs!", 18, FontStyles.Normal, TextAlignmentOptions.Center);
-        hint.color = new Color(0.9f, 0.95f, 1f);
+        TMP_Text hint = CreateText(panel, useJapanese ? "手を動かしてフルーツを切る  |  爆弾を避ける" : "Move your hand to slice fruits  |  Avoid bombs", 24, FontStyles.Bold, TextAlignmentOptions.Center);
+        hint.color = Color.white;
+        hint.outlineColor = new Color(0f, 0f, 0f, 0.9f);
+        hint.outlineWidth = 0.15f;
+        // Instanced material lets us force a pure, undimmed white face regardless of the font asset's default tint.
+        Material hintMaterial = hint.fontMaterial;
+        hintMaterial.SetColor(ShaderUtilities.ID_FaceColor, Color.white);
+        hintMaterial.SetFloat(ShaderUtilities.ID_FaceDilate, 0.2f);
+        hint.fontMaterial = hintMaterial;
+        var shadow = hint.gameObject.AddComponent<UnityEngine.UI.Shadow>();
+        shadow.effectColor = new Color(0f, 0f, 0f, 0.6f);
+        shadow.effectDistance = new Vector2(1f, -1f);
         AddLayout(hint.gameObject, 540f, 45f);
 
-        Button playButton = CreateButton(panel, "PLAY NINJA", new Color(0.95f, 0.3f, 0.1f), new Color(1f, 1f, 1f));
-        AddLayout(playButton.gameObject, 320f, 60f);
+        Button playButton = CreateButton(panel, useJapanese ? "プレイ開始" : "PLAY NINJA", new Color(1f, 0.24f, 0.06f), new Color(1f, 1f, 1f));
+        AddLayout(playButton.gameObject, 420f, 78f);
         playButton.onClick.AddListener(StartGame);
-
-        Button quitButton = CreateButton(panel, "EXIT", new Color(0.18f, 0.21f, 0.25f), new Color(0.82f, 0.88f, 0.92f));
-        AddLayout(quitButton.gameObject, 320f, 48f);
-        quitButton.onClick.AddListener(QuitGame);
     }
 
     private Canvas CreateCanvas()
@@ -176,6 +205,23 @@ public class RuntimeStartScreen : MonoBehaviour
         }
 
         return createdCanvas;
+    }
+
+    private Sprite LoadStartScreenArt()
+    {
+        Sprite sprite = Resources.Load<Sprite>("StartScreenArt");
+        if (sprite != null)
+        {
+            return sprite;
+        }
+
+        Texture2D texture = Resources.Load<Texture2D>("StartScreenArt");
+        if (texture == null)
+        {
+            return null;
+        }
+
+        return Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.height), new Vector2(0.5f, 0.5f));
     }
 
     private Image CreatePanel(Transform parent, string objectName, Color color)
@@ -235,7 +281,7 @@ public class RuntimeStartScreen : MonoBehaviour
         colors.selectedColor = colors.highlightedColor;
         button.colors = colors;
 
-        TMP_Text label = CreateText(image.transform, text, 24, FontStyles.Bold, TextAlignmentOptions.Center);
+        TMP_Text label = CreateText(image.transform, text, 32, FontStyles.Bold, TextAlignmentOptions.Center);
         label.color = textColor;
         Stretch(label.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
@@ -358,11 +404,11 @@ public class RuntimeStartScreen : MonoBehaviour
         layout.childControlWidth = true;
         layout.childControlHeight = false;
 
-        TMP_Text title = CreateText(panel, "CONNECTING CAMERA...", 32, FontStyles.Bold, TextAlignmentOptions.Center);
+        TMP_Text title = CreateText(panel, japaneseFontAsset != null ? "カメラに接続中..." : "CONNECTING CAMERA...", 32, FontStyles.Bold, TextAlignmentOptions.Center);
         title.color = new Color(0.2f, 1f, 0.9f);
         AddLayout(title.gameObject, 540f, 45f);
 
-        waitingLabel = CreateText(panel, "Please wait while the hand tracker starts up", 20, FontStyles.Normal, TextAlignmentOptions.Center);
+        waitingLabel = CreateText(panel, japaneseFontAsset != null ? "ハンドトラッキングを起動しています" : "Please wait while the hand tracker starts up", 20, FontStyles.Normal, TextAlignmentOptions.Center);
         waitingLabel.color = new Color(0.85f, 0.9f, 0.95f);
         AddLayout(waitingLabel.gameObject, 540f, 60f);
     }

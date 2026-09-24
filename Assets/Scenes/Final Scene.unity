@@ -1070,8 +1070,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1817255259}
-  - component: {fileID: 1817255258}
-  - component: {fileID: 1817255257}
   m_Layer: 0
   m_Name: GameController
   m_TagString: Untagged
@@ -1079,40 +1077,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1817255257
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1817255256}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a971bcfdf520fe94fbd08c08c6efd4f0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PackageGrabber
-  handCenter: {fileID: 149755669}
-  spawnPosition: {x: 0, y: 1.2, z: 1.5}
-  grabRadius: 1.8
-  throwForce: 12
-  currentPackage: {fileID: 0}
-  isHolding: 0
-  lastHandPos: {x: 0, y: 0, z: 0}
-  handVelocity: {x: 0, y: 0, z: 0}
-  legacyReceiver: {fileID: 0}
-  receiver: {fileID: 0}
---- !u!114 &1817255258
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1817255256}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1bb16b6af21d5c549add0ddaf3771f74, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LogisticsGameController
 --- !u!4 &1817255259
 Transform:
   m_ObjectHideFlags: 0
@@ -1122,7 +1086,7 @@ Transform:
   m_GameObject: {fileID: 1817255256}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1819.369, y: 1092.8594, z: 91.13805}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
